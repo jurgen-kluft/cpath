@@ -1,0 +1,36 @@
+#ignore all files
+*
+!*/
+
+vendor/
+tags
+target/
+
+#except the following files
+!.gitignore
+!.clang-format
+!*.cpp
+!*.hpp
+!*.c
+!*.h
+!*.inl
+
+!*.pl
+
+!*.go
+
+!*.cs
+!*.csproj
+!*.resx
+
+!*.hlsl
+!*.fragment
+
+!*.mold
+!*.sc
+!*.diagram
+
+!*.ini
+!*.bat
+
+#except the following folders
