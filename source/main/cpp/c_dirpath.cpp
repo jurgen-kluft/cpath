@@ -3,9 +3,10 @@
 #include "cbase/c_integer.h"
 #include "cbase/c_runes.h"
 
-#include "cfilesystem/c_filepath.h"
-#include "cfilesystem/c_dirpath.h"
-#include "cfilesystem/private/c_filesystem.h"
+#include "cpath/c_filepath.h"
+#include "cpath/c_dirpath.h"
+#include "cpath/private/c_pathdb.h"
+#include "cpath/private/c_pathreg.h"
 
 namespace ncore
 {
@@ -13,43 +14,43 @@ namespace ncore
     // dirpath_t: "Device:\\Folder\Folder\"
     //==============================================================================
 
-    dirpath_t::dirpath_t() : m_device(filesys_t::sNilDevice), m_path(filesys_t::sNilNode) {}
+    dirpath_t::dirpath_t() : m_device(pathreg_t::sNilDevice), m_path(pathreg_t::sNilNode) {}
 
     dirpath_t::dirpath_t(dirpath_t const& other)
     {
         m_device = other.m_device->attach();
-        m_path   = other.m_device->m_root->m_paths->attach(other.m_path);
+        m_path   = other.m_device->m_root->m_pathdb->attach(other.m_path);
     }
     dirpath_t::dirpath_t(pathdevice_t* device)
     {
         m_device = device->attach();
-        m_path   = filesys_t::sNilNode;
+        m_path   = pathreg_t::sNilNode;
     }
     dirpath_t::dirpath_t(pathdevice_t* device, pathnode_t* path)
     {
-        m_device = m_device->m_root->m_paths->attach(device);
-        m_path   = m_device->m_root->m_paths->attach(path);
+        m_device = m_device->m_root->m_pathdb->attach(device);
+        m_path   = m_device->m_root->m_pathdb->attach(path);
     }
 
     dirpath_t::~dirpath_t()
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
         root->release_device(m_device);
         root->release_path(m_path);
     }
 
     void dirpath_t::clear()
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
         root->release_device(m_device);
         root->release_path(m_path);
-        m_device = filesys_t::sNilDevice;
-        m_path   = filesys_t::sNilNode;
+        m_device = pathreg_t::sNilDevice;
+        m_path   = pathreg_t::sNilNode;
     }
 
-    bool dirpath_t::isEmpty() const { return m_device == filesys_t::sNilDevice && m_path == filesys_t::sNilNode; }
-    bool dirpath_t::isRoot() const { return m_device != filesys_t::sNilDevice && m_path != filesys_t::sNilNode; }
-    bool dirpath_t::isRooted() const { return m_device != filesys_t::sNilDevice; }
+    bool dirpath_t::isEmpty() const { return m_device == pathreg_t::sNilDevice && m_path == pathreg_t::sNilNode; }
+    bool dirpath_t::isRoot() const { return m_device != pathreg_t::sNilDevice && m_path != pathreg_t::sNilNode; }
+    bool dirpath_t::isRooted() const { return m_device != pathreg_t::sNilDevice; }
 
     void dirpath_t::makeRelativeTo(const dirpath_t& dirpath)
     {
@@ -87,30 +88,30 @@ namespace ncore
     dirpath_t dirpath_t::root() const
     {
         dirpath_t   dp(m_device);
-        filesys_t*  root = m_device->m_root;
+        pathreg_t*  root = m_device->m_root;
         pathnode_t* left = nullptr;
-        dp.m_path        = m_device->m_root->m_paths->attach(left);
+        dp.m_path        = m_device->m_root->m_pathdb->attach(left);
         return dp;
     }
 
     dirpath_t dirpath_t::parent() const
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
         dirpath_t  dp(m_device);
         dp.m_path = root->get_parent_path(m_path);
-        dp.m_path = m_device->m_root->m_paths->attach(dp.m_path);
+        dp.m_path = m_device->m_root->m_pathdb->attach(dp.m_path);
         return dp;
     }
 
     pathstr_t* dirpath_t::basename() const { return m_path->m_name; }
-    pathstr_t* dirpath_t::rootname() const 
-    { 
+    pathstr_t* dirpath_t::rootname() const
+    {
         pathnode_t* iter = m_path;
         while (iter->m_parent != nullptr)
             iter = iter->m_parent;
         return iter->m_name;
     }
-    pathstr_t*  dirpath_t::devname() const { return m_device->m_deviceName; }
+    pathstr_t* dirpath_t::devname() const { return m_device->m_deviceName; }
 
     s32 dirpath_t::getLevels() const
     {
@@ -126,16 +127,16 @@ namespace ncore
 
     void dirpath_t::down(crunes_t const& folder)
     {
-        filesys_t* root       = m_device->m_root;
-        pathstr_t* folder_str = root->m_paths->findOrInsert(folder);
-        m_path                = root->m_paths->findOrInsert(m_path, folder_str);
+        pathreg_t*  root       = m_device->m_root;
+        pathname_t* folder_str = root->m_pathdb->findOrInsert(folder);
+        m_path                 = root->m_pathdb->findOrInsert(m_path, folder_str);
     }
 
     void dirpath_t::up()
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t*  root    = m_device->m_root;
         pathnode_t* current = m_path;
-        m_path = m_path->m_parent;
+        m_path              = m_path->m_parent;
         if (m_path == nullptr)
             m_path = root->sNilNode;
         root->release_path(current);
@@ -146,34 +147,34 @@ namespace ncore
         s32 const de = other.m_device->compare(m_device);
         if (de != 0)
             return de;
-        s32 const pe = other.m_device->m_root->m_paths->compare(m_path, other.m_path);
+        s32 const pe = other.m_device->m_root->m_pathdb->compare(m_path, other.m_path);
         return pe;
     }
 
     void dirpath_t::to_string(runes_t& str) const
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
         m_device->to_string(str);
-        root->m_paths->to_string(m_path, str);
+        root->m_pathdb->to_string(m_path, str);
     }
 
     s32 dirpath_t::to_strlen() const
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
         s32        len  = m_device->to_strlen();
-        len += root->m_paths->to_strlen(m_path);
+        len += root->m_pathdb->to_strlen(m_path);
         return len;
     }
 
     dirpath_t& dirpath_t::operator=(dirpath_t const& other)
     {
-        filesys_t* root = m_device->m_root;
+        pathreg_t* root = m_device->m_root;
 
         root->release_device(m_device);
         root->release_path(m_path);
 
-        m_device = root->m_paths->attach(other.m_device);
-        m_path   = root->m_paths->attach(other.m_path);
+        m_device = root->m_pathdb->attach(other.m_device);
+        m_path   = root->m_pathdb->attach(other.m_path);
         return *this;
     }
 

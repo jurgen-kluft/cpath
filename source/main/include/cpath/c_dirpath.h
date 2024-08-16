@@ -1,5 +1,5 @@
-#ifndef __C_FILESYSTEM_DIRPATH_H__
-#define __C_FILESYSTEM_DIRPATH_H__
+#ifndef __C_PATH_DIRPATH_H__
+#define __C_PATH_DIRPATH_H__
 #include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
 #    pragma once
@@ -8,14 +8,13 @@
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 
-#include "cfilesystem/c_enumerator.h"
-#include "cfilesystem/private/c_path.h"
-#include "cfilesystem/private/c_filesystem.h"
-
 namespace ncore
 {
     class filepath_t;
-    class filesys_t;
+    class pathreg_t;
+    class pathdevice_t;
+    class pathnode_t;
+    class pathstr_t;
 
     //==============================================================================
     // dirpath_t:

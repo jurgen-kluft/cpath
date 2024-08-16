@@ -1,35 +1,29 @@
 #include "ccore/c_target.h"
 #include "cbase/c_runes.h"
+#include "cbase/c_allocator.h"
 #include "ctime/c_datetime.h"
 
 #include "cunittest/cunittest.h"
 
-#include "cfilesystem/private/c_filedevice.h"
-#include "cfilesystem/c_filesystem.h"
-#include "cfilesystem/c_filepath.h"
-#include "cfilesystem/c_dirpath.h"
-#include "cfilesystem/c_stream.h"
+#include "cpath/c_filepath.h"
+#include "cpath/private/c_pathreg.h"
+
+#include "cpath/test_allocator.h"
 
 using namespace ncore;
-
-extern alloc_t* gTestAllocator;
 
 UNITTEST_SUITE_BEGIN(filepath)
 {
 	UNITTEST_FIXTURE(main)
 	{
+        UNITTEST_ALLOCATOR;
+
 		UNITTEST_FIXTURE_SETUP()
 		{
-			filesystem_t::context_t ctxt;
-			ctxt.m_allocator = gTestAllocator;
-			ctxt.m_max_open_files = 32;
-			filesystem_t::create(ctxt);
 		}
 
 		UNITTEST_FIXTURE_TEARDOWN()
-		{
-			filesystem_t::destroy();
-		}
+		{}
 
 		UNITTEST_TEST(constructor1)
 		{
@@ -40,10 +34,16 @@ UNITTEST_SUITE_BEGIN(filepath)
 
 		UNITTEST_TEST(constructor2)
 		{
+            pathreg_t reg;
+            reg.init(Allocator);
+
 			const char* str = "TEST:\\textfiles\\docs\\readme.txt";
-			filepath_t p = filesystem_t::filepath(str);
+			filepath_t p;
+            reg.filepath(str, p);
 
 			CHECK_FALSE(p.isEmpty());
+
+            reg.exit(Allocator);
 		}
 
 	}

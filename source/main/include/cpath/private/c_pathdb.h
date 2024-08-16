@@ -1,5 +1,5 @@
-#ifndef __C_FILESYSTEM_PATH_H__
-#define __C_FILESYSTEM_PATH_H__
+#ifndef __C_PATH_PATH_DB_H__
+#define __C_PATH_PATH_DB_H__
 #include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
 #    pragma once
@@ -7,7 +7,6 @@
 
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
-#include "cfilesystem/c_filesystem.h"
 
 namespace ncore
 {
@@ -15,7 +14,7 @@ namespace ncore
 
     class filesystem_t;
     class filedevice_t;
-    class filesys_t;
+    class pathreg_t;
 
     //==============================================================================
     // dirpath_t:
@@ -51,9 +50,9 @@ namespace ncore
     // This means using a red-black tree we can have trees within trees within trees, and
     // with a hash table it would be harder to handle 'sizing' of each sub table.
     //
-    struct paths_t
+    struct pathdb_t
     {
-        paths_t();
+        pathdb_t();
 
         enum EType
         {
@@ -126,9 +125,11 @@ namespace ncore
         void          init(alloc_t* allocator, u32 cap = 1024 * 1024);
         void          release(alloc_t* allocator);
         folder_t*     attach(folder_t* node) {}
+        str_t*        attach(str_t* node) { return node; }
         name_t*       attach(name_t* node) { return node; }
         void          detach(folder_t* node) {}
         void          detach(name_t* node) {}
+        void          detach(str_t* node) {}
         pathdevice_t* attach(pathdevice_t* device) { return device; }
         void          detach(pathdevice_t* device) {}
 
@@ -136,14 +137,16 @@ namespace ncore
         bool      remove(name_t* item);
         folder_t* findOrInsert(folder_t* parent, name_t* str);
         bool      remove(folder_t* item);
-        void      to_string(folder_t* str, runes_t& out_str) const;
+        void      to_string(str_t* str, runes_t& out_str) const;
         void      to_string(name_t* str, runes_t& out_str) const;
         s32       to_strlen(folder_t* str) const;
+        s32       compare(str_t* left, str_t* right) const { return str_t::compare(left, right); }
         s32       compare(name_t* left, name_t* right) const { return str_t::compare(left->m_str, right->m_str); }
         s32       compare(folder_t* left, folder_t* right) const { return str_t::compare(left->m_name, right->m_name); }
 
         inline folder_t* get_nil_node() const { return m_nil_node; }
-        name_t*          get_nil_name() const { return m_nil_str; }
+        str_t*           get_nil_str() const { return m_nil_str; }
+        name_t*          get_nil_name() const { return m_nil_name; }
 
         void* m_text_data;      // Virtual memory array (text_t[])
         u64   m_text_data_size; // Current size of the text data
@@ -154,21 +157,23 @@ namespace ncore
         u64       m_node_free_index; // Index of the free list
 
         folder_t* m_nil_node; // sentinel node
-        name_t*   m_nil_str;  // sentinel string
+        str_t*    m_nil_str;  // sentinel string
+        name_t*   m_nil_name; // sentinel name
 
         name_t*   m_strings_root; // bst-tree root, all strings
         folder_t* m_nodes_root;   // bst-tree root, paths
     };
 
-    typedef paths_t::folder_t pathnode_t;
-    typedef paths_t::name_t   pathstr_t;
+    typedef pathdb_t::folder_t pathnode_t;
+    typedef pathdb_t::name_t   pathname_t;
+    typedef pathdb_t::str_t    pathstr_t;
 
     struct pathdevice_t
     {
         inline pathdevice_t() : m_root(nullptr), m_alias(nullptr), m_deviceName(nullptr), m_devicePath(nullptr), m_redirector(nullptr), m_fileDevice(nullptr) {}
 
-        void          init(filesys_t* owner);
-        pathdevice_t* construct(alloc_t* allocator, filesys_t* owner);
+        void          init(pathreg_t* owner);
+        pathdevice_t* construct(alloc_t* allocator, pathreg_t* owner);
         void          destruct(alloc_t* allocator, pathdevice_t*& device);
         pathdevice_t* attach();
         bool          detach();
@@ -176,7 +181,7 @@ namespace ncore
         void          to_string(runes_t& str) const;
         s32           to_strlen() const;
 
-        filesys_t*    m_root;
+        pathreg_t*    m_root;
         pathstr_t*    m_alias;      // an alias redirection (e.g. "data")
         pathstr_t*    m_deviceName; // "[appdir:\]data\bin.pc\", "[data:\]files\" to "[appdir:\]data\bin.pc\files\"
         pathnode_t*   m_devicePath; // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
@@ -185,4 +190,4 @@ namespace ncore
     };
 }; // namespace ncore
 
-#endif // __C_FILESYSTEM_PATH_H__
+#endif

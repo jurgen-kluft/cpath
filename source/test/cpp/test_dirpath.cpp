@@ -1,36 +1,30 @@
 #include "ccore/c_target.h"
+#include "cbase/c_allocator.h"
 #include "cbase/c_runes.h"
 #include "ctime/c_datetime.h"
 
 #include "cunittest/cunittest.h"
 
-#include "cfilesystem/private/c_filedevice.h"
-#include "cfilesystem/c_filesystem.h"
-#include "cfilesystem/c_filepath.h"
-#include "cfilesystem/c_dirpath.h"
-#include "cfilesystem/c_stream.h"
+#include "cpath/c_dirpath.h"
+#include "cpath/private/c_pathreg.h"
+
+#include "cpath/test_allocator.h"
 
 using namespace ncore;
-
-extern alloc_t* gTestAllocator;
 
 UNITTEST_SUITE_BEGIN(dirpath)
 {
 	UNITTEST_FIXTURE(main)
 	{
+        UNITTEST_ALLOCATOR;
+
 		UNITTEST_FIXTURE_SETUP()
 		{
-			filesystem_t::context_t ctxt;
-			ctxt.m_allocator = gTestAllocator;
-			ctxt.m_max_open_files = 32;
-			filesystem_t::create(ctxt);
 		}
 
 		UNITTEST_FIXTURE_TEARDOWN()
 		{
-			filesystem_t::destroy();
 		}
-
 
 		static const char*		sFolders[] = {
 			"the",
@@ -47,17 +41,31 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
 		UNITTEST_TEST(constructor2)
 		{
-			dirpath_t dirpath = filesystem_t::dirpath("c:\\the\\name\\is\\johhnywalker\\");
+            pathreg_t reg;
+            reg.init(Allocator);
+
+			dirpath_t dirpath;
+            reg.dirpath("c:\\the\\name\\is\\johhnywalker\\", dirpath);
+
 			CHECK_EQUAL(false, dirpath.isEmpty());
+
+            reg.exit(Allocator);
 		}
 
 		UNITTEST_TEST(to_string)
 		{
+            pathreg_t reg;
+            reg.init(Allocator);
+
 			const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
-			dirpath_t dirpath = filesystem_t::dirpath(asciidirstr);
+
+			dirpath_t dirpath;
+            reg.dirpath(asciidirstr, dirpath);
 			nrunes::runestr_t<ascii::rune, 128> dirstr;
 			dirpath.to_string(dirstr);
 			CHECK_EQUAL(0, compare(dirstr, asciidirstr));
+
+            reg.exit(Allocator);
 		}
 	}
 }

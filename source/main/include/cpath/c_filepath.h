@@ -1,5 +1,5 @@
-#ifndef __C_FILESYSTEM_FILEPATH_H__
-#define __C_FILESYSTEM_FILEPATH_H__
+#ifndef __C_PATH_FILEPATH_H__
+#define __C_PATH_FILEPATH_H__
 #include "ccore/c_target.h"
 #ifdef USE_PRAGMA_ONCE
 #    pragma once
@@ -7,8 +7,7 @@
 
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
-#include "cfilesystem/c_dirpath.h"
-#include "cfilesystem/c_filesystem.h"
+#include "cpath/c_dirpath.h"
 
 namespace ncore
 {
