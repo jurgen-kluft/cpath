@@ -51,118 +51,6 @@ namespace ncore
 
     class pathreg_t;
     struct pathdevice_t;
-    struct pathnode_t;
-
-
-    // -------------------------------------------------------------------------------------------
-    //
-    // pathdb_t implementations
-    //
-    void pathdb_t::init(alloc_t* allocator, u32 cap)
-    {
-        // allocate text entries using an average of 32 bytes per string excluding the name_t header
-        // @todo; these should be virtual buffers
-        m_text_data_cap  = cap * (32 + sizeof(str_t) + sizeof(name_t));
-        m_text_data      = (name_t*)allocator->allocate(m_text_data_cap, sizeof(void*));
-        m_text_data_size = sizeof(name_t);
-
-        m_node_array      = (folder_t*)allocator->allocate(sizeof(folder_t) * cap, sizeof(void*));
-        m_node_free_head  = nullptr;
-        m_node_free_index = 1;
-
-        m_nil_str         = (str_t*)m_text_data;
-        m_nil_str->m_hash = 0;
-        m_nil_str->m_len  = 0;
-
-        m_nil_name                = (name_t*)m_text_data;
-        m_nil_name->m_str         = m_nil_str;
-        m_nil_name->m_children[0] = 0; // left
-        m_nil_name->m_children[1] = 0; // right
-
-        m_nil_node                = m_node_array;
-        m_nil_node->m_children[0] = 0; // left
-        m_nil_node->m_children[1] = 0; // right
-        m_nil_node->m_parent      = 0;
-        m_nil_node->m_name        = m_nil_str;
-
-        m_strings_root = nullptr;
-        m_nodes_root   = nullptr;
-    }
-
-    void pathdb_t::release(alloc_t* allocator)
-    {
-        allocator->deallocate(m_text_data);
-        m_text_data      = nullptr;
-        m_text_data_size = 0;
-        m_text_data_cap  = 0;
-
-        m_node_array      = nullptr;
-        m_node_free_head  = nullptr;
-        m_node_free_index = 0;
-
-        m_nil_node = nullptr;
-        m_nil_str  = nullptr;
-
-        m_strings_root = nullptr;
-        m_nodes_root   = nullptr;
-    }
-
-    static u32 hash(utf8::pcrune str, utf8::pcrune end)
-    {
-        u32 hash = 0;
-        while (str < end)
-        {
-            hash = hash + *str++ * 31;
-        }
-        return hash;
-    }
-
-    pathname_t* pathdb_t::findOrInsert(crunes_t const& str)
-    {
-        // write this string to the text buffer as utf8
-        name_t* str_entry = (name_t*)((u8*)m_text_data + m_text_data_size);
-        str_entry->reset();
-
-        // need a function to write crunes_t to a utf-8 buffer
-        utf8::prune str8 = nullptr;
-        utf8::prune end8 = nullptr;
-
-        u32 const str_hash = hash(str8, end8);
-        u32 const str_len  = end8 - str8;
-
-        // See if we can find the string in the tree
-        name_t* it = m_strings_root;
-        while (it != m_nil_name)
-        {
-            s32 c = 0;
-            if (str_hash == it->m_str->m_hash)
-            {
-                // binary comparison
-                utf8::pcrune ostr8 = it->m_str->str();
-                utf8::pcrune oend8 = it->m_str->str() + it->m_str->m_len;
-                c                  = compare_buffers(str8, end8, ostr8, oend8);
-                if (c == 0)
-                    return it;
-                c = (c + 1) >> 1;
-            }
-            else if (str_hash < it->m_str->m_hash)
-            {
-                c = 0;
-            }
-            else
-            {
-                c = 1;
-            }
-            it = (name_t*)((u8*)m_text_data + it->m_children[c]);
-        }
-
-        // not found, so create and add it
-        it = str_entry;
-
-        // add it to the tree
-
-        return it;
-    }
 
     // -------------------------------------------------------------------------------------------
     //
@@ -170,12 +58,14 @@ namespace ncore
     //
     void pathdevice_t::init(pathreg_t* owner)
     {
-        m_root       = owner;
-        m_alias      = owner->sNilStr;
-        m_deviceName = owner->sNilStr;
-        m_devicePath = owner->sNilNode;
-        m_redirector = nullptr;
-        m_fileDevice = nullptr;
+        m_pathreg    = owner;
+        m_pathdb     = owner->m_pathdb;
+        m_alias      = 0;
+        m_deviceName = 0;
+        m_devicePath = 0;
+        m_redirector = 0;
+        m_userdata1  = 0;
+        m_userdata2  = 0;
     }
 
     pathdevice_t* pathdevice_t::construct(alloc_t* allocator, pathreg_t* owner)
@@ -194,27 +84,26 @@ namespace ncore
 
     pathdevice_t* pathdevice_t::attach()
     {
-        m_root->m_pathdb->attach(m_alias);
-        m_root->m_pathdb->attach(m_deviceName);
-        m_root->m_pathdb->attach(m_devicePath);
-        if (m_redirector != nullptr)
-            m_redirector->attach();
+        m_pathdb->attach(m_alias);
+        m_pathdb->attach(m_deviceName);
+        m_pathdb->attach(m_devicePath);
+        if (m_redirector != -1)
+        {
+            pathdevice_t* redirector = m_pathreg->m_arr_devices[m_redirector];
+            redirector->attach();
+        }
         return this;
     }
 
     bool pathdevice_t::detach()
     {
-        m_root->release_name(m_alias);
-        m_root->release_name(m_deviceName);
-        m_root->release_path(m_devicePath);
-        if (m_redirector != nullptr)
-            m_redirector->detach();
+        m_alias      = m_pathdb->detach(m_alias);
+        m_deviceName = m_pathdb->detach(m_deviceName);
+        m_devicePath = m_pathdb->detach(m_devicePath);
 
-        m_alias      = m_root->sNilStr;
-        m_deviceName = m_root->sNilStr;
-        m_devicePath = m_root->sNilNode;
-        m_redirector = nullptr;
-        m_fileDevice = nullptr;
+        m_pathreg->release_pathdevice(m_redirector);
+        m_userdata1 = 0;
+        m_userdata2 = 0;
 
         return false;
     }
@@ -230,51 +119,59 @@ namespace ncore
 
     void pathdevice_t::to_string(runes_t& str) const
     {
-        s32                 i      = 0;
-        pathdevice_t const* device = this;
+        s32                 i            = 0;
+        s16                 device_index = m_device_index;
         pathdevice_t const* devices[32];
         do
         {
-            devices[i++] = device;
-            device       = device->m_redirector;
-        } while (device != nullptr && i < 32);
+            pathdevice_t* device   = m_pathreg->m_arr_devices[device_index];
+            devices[i++]           = device;
+            s16 const device_index = device->m_redirector;
+        } while (device_index > 0 && i < 32);
 
-        device = devices[--i];
+        pathdevice_t const* device = devices[--i];
 
         // should be the root device (has filedevice), so first emit the device name.
         // this device should not have any device path.
-        m_root->m_pathdb->to_string(device->m_deviceName, str);
+        crunes_t device_str;
+        m_pathdb->m_strings->to_string(device->m_deviceName, device_str);
+        // TODO append this device's path to the string
 
         // the rest of the devices are aliases and should be appending their paths
         while (--i >= 0)
         {
             device = devices[i];
-            m_root->m_pathdb->to_string(device->m_deviceName, str);
+            m_pathdb->m_strings->to_string(device->m_deviceName, device_str);
+            // TODO append this device's path to the string
         }
     }
 
     s32 pathdevice_t::to_strlen() const
     {
-        s32                 i      = 0;
-        pathdevice_t const* device = this;
+        s32                 i            = 0;
+        s16                 device_index = m_device_index;
         pathdevice_t const* devices[32];
         do
         {
-            devices[i++] = device;
-            device       = device->m_redirector;
-        } while (device != nullptr && i < 32);
+            pathdevice_t* device   = m_pathreg->m_arr_devices[device_index];
+            devices[i++]           = device;
+            s16 const device_index = device->m_redirector;
+        } while (device_index > 0 && i < 32);
 
-        device = devices[--i];
+        pathdevice_t const* device = devices[--i];
 
         // should be the root device (has filedevice), so first emit the device name.
         // this device should not have any device path.
-        s32 len = device->m_deviceName->m_len;
+
+        s32 len = m_pathdb->m_strings->get_len(device->m_deviceName);
+        len += 2; // for the ":\" or ":\"
 
         // the rest of the devices are aliases and should be appending their paths
         while (--i >= 0)
         {
             device = devices[i];
-            len += device->m_devicePath->m_name->m_len;
+            len += m_pathdb->m_strings->get_len(device->m_devicePath);
+            len += 1; // for the "\"
         }
         return len;
     }

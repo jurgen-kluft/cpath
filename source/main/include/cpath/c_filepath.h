@@ -21,9 +21,8 @@ namespace ncore
         pathstr_t* m_extension;
 
         friend class fileinfo_t;
-        friend class filesys_t;
         friend class filedevice_t;
-        friend class filedevice_pc_t;
+        friend class pathreg_t;
 
     public:
         filepath_t();

@@ -13,8 +13,6 @@ namespace ncore
     class filepath_t;
     class pathreg_t;
     class pathdevice_t;
-    class pathnode_t;
-    class pathstr_t;
 
     //==============================================================================
     // dirpath_t:
@@ -27,12 +25,11 @@ namespace ncore
         pathdevice_t* m_device; // "E:\" (the file device)
         pathnode_t*   m_path;   // "documents\old\inventory\books\sci-fi\"
 
-        friend class filepath_t;
-        friend class filesys_t;
         friend class fileinfo_t;
         friend class dirinfo_t;
+        friend class filepath_t;
+        friend class pathreg_t;
         friend class filedevice_t;
-        friend class filedevice_pc_t;
 
     public:
         dirpath_t();

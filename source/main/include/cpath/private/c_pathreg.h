@@ -13,11 +13,8 @@ namespace ncore
 {
     class filepath_t;
     class dirpath_t;
-    struct pathdevice_t;
-    struct pathnode_t;
-    struct pathname_t;
-    struct pathstr_t;
     class pathdb_t;
+    struct pathdevice_t;
 
     class pathreg_t
     {
@@ -45,10 +42,10 @@ namespace ncore
         s32            m_num_devices;
         s32            m_max_devices;
         pathdevice_t** m_arr_devices;
-        pathdb_t*      m_pathdb; // all data for pathnode_t, pathnode_t, pathnode_t, etc.
+        pathstr_db_t   m_strings;
+        pathdb_t*      m_pathdb;
 
         static pathdevice_t* sNilDevice;
-        static pathname_t*   sNilName;
         static pathstr_t*    sNilStr;
         static pathnode_t*   sNilNode;
 
@@ -63,14 +60,15 @@ namespace ncore
         void register_filename(crunes_t const& namestr, pathstr_t*& filename, pathstr_t*& extension);
         void register_name(crunes_t const& namestr, pathstr_t*& name);
 
+        bool register_device(const crunes_t& devpathstr, filedevice_t* device);
+        bool register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr);
+
         pathdevice_t* register_device(crunes_t const& device);
         pathdevice_t* register_device(pathstr_t* device);
 
-        void release_name(pathstr_t* name);
-        void release_filename(pathstr_t* name);
-        void release_extension(pathstr_t* name);
-        void release_path(pathnode_t* path);
-        void release_device(pathdevice_t* dev);
+        void release_pathstr(pathstr_t name);
+        void release_pathnode(pathnode_t path);
+        void release_pathdevice(s16 dev);
 
         pathnode_t* get_parent_path(pathnode_t* path);
 
@@ -84,4 +82,4 @@ namespace ncore
 
 } // namespace ncore
 
-#endif
+#endif // __C_PATH_PATH_REG_H__

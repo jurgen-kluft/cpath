@@ -18,6 +18,10 @@ namespace ncore
     //
     // pathreg_t functions
     //
+    /*
+        Every folder has a name, has a parent folder (except for the root folder), and has a bst that
+        contains all the child folders and files. The bst is sorted by the name of the file/folder.
+    */
     pathdevice_t* pathreg_t::sNilDevice;
     pathname_t*   pathreg_t::sNilName;
     pathstr_t*    pathreg_t::sNilStr;
@@ -74,40 +78,21 @@ namespace ncore
     {
         if (p == sNilStr)
             return;
-        // m_pathdb->detach(p);
+        // We do not reference count the strings yet, so we cannot know if we should release a string
+        // This could be implemented in the future
+        m_pathdb->detach(p);
     }
 
-    void pathreg_t::release_name(pathstr_t* p)
+    void pathreg_t::release_pathstr(pathstr_t p)
     {
         if (p == sNilStr)
             return;
         m_pathdb->detach(p);
     }
 
-    void pathreg_t::release_filename(pathstr_t* p)
+    void pathreg_t::release_pathdevice(s16 dev)
     {
-        if (p == sNilStr)
-            return;
-        m_pathdb->detach(p);
-    }
-
-    void pathreg_t::release_extension(pathstr_t* p)
-    {
-        if (p == sNilStr)
-            return;
-        m_pathdb->detach(p);
-    }
-
-    void pathreg_t::release_path(pathnode_t* p)
-    {
-        if (p == sNilNode)
-            return;
-        m_pathdb->detach(p);
-    }
-
-    void pathreg_t::release_device(pathdevice_t* dev)
-    {
-        if (dev == sNilDevice)
+        if (dev < 0)
             return;
         m_pathdb->detach(dev);
     }
@@ -245,5 +230,107 @@ namespace ncore
     }
 
     pathnode_t* pathreg_t::get_parent_path(pathnode_t* path) { return path->m_parent; }
+
+    void pathreg_t::resolve(filepath_t const& fp, pathdevice_t*& device, pathnode_t*& dir, pathstr_t*& filename, pathstr_t*& extension)
+    {
+        device    = get_pathdevice(fp);
+        dir       = get_path(fp);
+        filename  = get_filename(fp);
+        extension = get_extension(fp);
+    }
+
+    void pathreg_t::resolve(dirpath_t const& dp, pathdevice_t*& device, pathnode_t*& dir)
+    {
+        device = get_pathdevice(dp);
+        dir    = get_path(dp);
+    }
+
+    pathdevice_t* pathreg_t::get_pathdevice(dirpath_t const& dirpath) { return dirpath.m_device; }
+    pathdevice_t* pathreg_t::get_pathdevice(filepath_t const& filepath) { return filepath.m_dirpath.m_device; }
+    pathnode_t*   pathreg_t::get_path(dirpath_t const& dirpath) { return dirpath.m_path; }
+    pathnode_t*   pathreg_t::get_path(filepath_t const& filepath) { return filepath.m_dirpath.m_path; }
+    pathstr_t*    pathreg_t::get_filename(filepath_t const& filepath) { return filepath.m_filename; }
+    pathstr_t*    pathreg_t::get_extension(filepath_t const& filepath) { return filepath.m_extension; }
+    pathreg_t*    pathreg_t::get_filesystem(dirpath_t const& dirpath) { return dirpath.m_device->m_root; }
+    pathreg_t*    pathreg_t::get_filesystem(filepath_t const& filepath) { return filepath.m_dirpath.m_device->m_root; }
+
+    void pathreg_t::filepath(const char* str, filepath_t& fp)
+    {
+        crunes_t filepathstr(str);
+        filepath(filepathstr, fp);
+    }
+
+    void pathreg_t::dirpath(const char* str, dirpath_t& dp)
+    {
+        crunes_t dirpathstr(str);
+        dirpath(dirpathstr, dp);
+    }
+
+    void pathreg_t::filepath(const crunes_t& str, filepath_t& fp)
+    {
+        pathstr_t*  devicename = nullptr;
+        pathnode_t* path       = nullptr;
+        pathstr_t*  filename   = nullptr;
+        pathstr_t*  extension  = nullptr;
+        register_fullfilepath(str, devicename, path, filename, extension);
+        pathdevice_t* device = register_device(devicename);
+
+        filepath_t filepath(device, path, filename, extension);
+        fp = filepath;
+    }
+
+    void pathreg_t::dirpath(const crunes_t& str, dirpath_t& dp)
+    {
+        pathstr_t*  devicename = nullptr;
+        pathnode_t* path       = nullptr;
+        register_fulldirpath(str, devicename, path);
+        pathdevice_t* device = register_device(devicename);
+        dirpath_t     dirpath(device, path);
+        dp = dirpath;
+    }
+
+    bool pathreg_t::has_device(const crunes_t& device_name)
+    {
+        pathstr_t* devname = find_name(device_name);
+        if (devname != nullptr)
+        {
+            pathdevice_t* dev = find_device(devname);
+            return dev != nullptr;
+        }
+        return false;
+    }
+
+    bool pathreg_t::register_device(const crunes_t& devpathstr, filedevice_t* device)
+    {
+        pathstr_t*  devname = nullptr;
+        pathnode_t* devpath = nullptr;
+        register_fulldirpath(devpathstr, devname, devpath);
+
+        pathdevice_t* dev = register_device(devname);
+        dev->m_devicePath = devpath;
+        if (dev->m_fileDevice == nullptr)
+        {
+            dev->m_fileDevice = device;
+        }
+        return true;
+    }
+
+    bool pathreg_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
+    {
+        pathstr_t* aliasname;
+        register_name(aliasstr, aliasname);
+
+        pathstr_t*  devname = nullptr;
+        pathnode_t* devpath = nullptr;
+        register_fulldirpath(devpathstr, devname, devpath);
+
+        pathdevice_t* alias = register_device(aliasname);
+        alias->m_alias      = aliasname;
+        alias->m_deviceName = devname;
+        alias->m_devicePath = devpath;
+        alias->m_redirector = register_device(devname);
+
+        return true;
+    }
 
 } // namespace ncore
