@@ -16,9 +16,9 @@ namespace ncore
 
     class filepath_t
     {
-        dirpath_t  m_dirpath;
-        pathstr_t* m_filename;
-        pathstr_t* m_extension;
+        dirpath_t m_dirpath;
+        pathstr_t m_filename;
+        pathstr_t m_extension;
 
         friend class fileinfo_t;
         friend class filedevice_t;
@@ -27,9 +27,9 @@ namespace ncore
     public:
         filepath_t();
         filepath_t(const filepath_t&);
-        filepath_t(pathstr_t* filename, pathstr_t* extension);
-        filepath_t(pathdevice_t* device, pathnode_t* dirpath, pathstr_t* filename, pathstr_t* extension);
-        filepath_t(dirpath_t const& dirpath, pathstr_t* filename, pathstr_t* extension);
+        filepath_t(pathstr_t filename, pathstr_t extension);
+        filepath_t(pathdevice_t* device, pathnode_t dirpath, pathstr_t filename, pathstr_t extension);
+        filepath_t(dirpath_t const& dirpath, pathstr_t filename, pathstr_t extension);
         ~filepath_t();
 
         void clear();
@@ -51,9 +51,9 @@ namespace ncore
         filepath_t filename() const;
         filepath_t relative() const;
 
-        pathnode_t* dirstr() const;
-        pathstr_t* filenamestr() const;
-        pathstr_t* extensionstr() const;
+        pathnode_t dirnode() const;
+        pathstr_t  filenamestr() const;
+        pathstr_t  extensionstr() const;
 
         void split(s32 pivot, dirpath_t& left, filepath_t& right) const;
         void truncate(filepath_t& filepath, pathnode_t*& folder) const;

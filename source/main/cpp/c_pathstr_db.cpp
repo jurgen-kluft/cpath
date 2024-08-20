@@ -33,8 +33,8 @@ namespace ncore
         allocator->deallocate(m_text_data);
     }
 
-    pathstr_db_t::str_t* pathstr_db_t::attach(str_t* node) { return node; }
-    pathstr_db_t::str_t* pathstr_db_t::detach(str_t* node) { return nullptr; }
+    pathstring_t* pathstr_db_t::attach(pathstring_t* node) { return node; }
+    pathstring_t* pathstr_db_t::detach(pathstring_t* node) { return nullptr; }
 
     static u32 hash(utf8::pcrune str, utf8::pcrune end)
     {
@@ -46,10 +46,10 @@ namespace ncore
         return hash;
     }
 
-    pathstr_db_t::str_t* pathstr_db_t::findOrInsert(crunes_t const& str)
+    pathstring_t* pathstr_db_t::findOrInsert(crunes_t const& str)
     {
         // write this string to the text buffer as utf8
-        str_t* str_entry  = m_str_array.alloc();
+        pathstring_t* str_entry  = m_str_array.alloc();
         str_entry->m_hash = 0;
         str_entry->m_len  = 0;
         str_entry->m_str  = nullptr;
@@ -66,7 +66,7 @@ namespace ncore
         while (node != 0)
         {
             pathstr_t pathstr = m_str_tree.get_item(node);
-            str_t*    it      = m_str_array.ptr_of(pathstr);
+            pathstring_t*    it      = m_str_array.ptr_of(pathstr);
 
             s32 c;
             if (str_hash == it->m_hash)
@@ -98,17 +98,17 @@ namespace ncore
         return str_entry;
     }
 
-    bool pathstr_db_t::remove(str_t* item) { return true; }
+    bool pathstr_db_t::remove(pathstring_t* item) { return true; }
 
     u32 pathstr_db_t::get_len(pathstr_t index) const { return m_str_array.ptr_of(index)->m_len; }
 
     void pathstr_db_t::to_string(pathstr_t str, crunes_t& out_str) const
     {
-        str_t* str_entry = m_str_array.ptr_of(str);
+        pathstring_t* str_entry = m_str_array.ptr_of(str);
         to_string(str_entry, out_str);
     }
 
-    void pathstr_db_t::to_string(str_t const* str, crunes_t& out_str) const
+    void pathstr_db_t::to_string(pathstring_t const* str, crunes_t& out_str) const
     {
         utf8::pcrune str8    = str->m_str;
         utf8::pcrune end8    = str->m_str + str->m_len;
@@ -120,8 +120,8 @@ namespace ncore
 
     s32 pathstr_db_t::compare(pathstr_t left, pathstr_t right)
     {
-        str_t* left_str  = m_str_array.ptr_of(left);
-        str_t* right_str = m_str_array.ptr_of(right);
+        pathstring_t* left_str  = m_str_array.ptr_of(left);
+        pathstring_t* right_str = m_str_array.ptr_of(right);
         if (left_str->m_hash < right_str->m_hash)
             return -1;
         if (left_str->m_hash > right_str->m_hash)

@@ -23,19 +23,20 @@ namespace ncore
     {
     protected:
         pathdevice_t* m_device; // "E:\" (the file device)
-        pathnode_t*   m_path;   // "documents\old\inventory\books\sci-fi\"
+        pathnode_t    m_path;   // "documents\old\inventory\books\sci-fi\"
 
         friend class fileinfo_t;
         friend class dirinfo_t;
         friend class filepath_t;
         friend class pathreg_t;
+        friend class pathdb_t;
         friend class filedevice_t;
 
     public:
         dirpath_t();
         dirpath_t(dirpath_t const& other);
         dirpath_t(pathdevice_t* device);
-        dirpath_t(pathdevice_t* device, pathnode_t* path);
+        dirpath_t(pathdevice_t* device, pathnode_t path);
         ~dirpath_t();
 
         void clear();
@@ -48,9 +49,9 @@ namespace ncore
 
         dirpath_t relative();
 
-        pathstr_t* devname() const;  // "E:\documents\old\inventory\", -> "E:\"
-        pathstr_t* rootname() const; // "E:\documents\old\inventory\", -> "documents"
-        pathstr_t* basename() const; // "E:\documents\old\inventory\", -> "inventory"
+        pathstr_t devname() const;  // "E:\documents\old\inventory\", -> "E:\"
+        pathstr_t rootname() const; // "E:\documents\old\inventory\", -> "documents"
+        pathstr_t basename() const; // "E:\documents\old\inventory\", -> "inventory"
 
         dirpath_t  device() const;                 // "E:\documents\old\inventory\books\sci-fi\", -> "E:\"
         dirpath_t  root() const;                   // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\"

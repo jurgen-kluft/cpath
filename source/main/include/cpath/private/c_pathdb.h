@@ -8,7 +8,7 @@
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 
-#include "cpath/private/c_bst.h"
+#include "cpath/private/c_rbtree.h"
 #include "cpath/private/c_pathstr_db.h"
 #include "cpath/private/c_virtual_array.h"
 
@@ -16,6 +16,10 @@ namespace ncore
 {
     class alloc_t;
 
+    class filepath_t;
+    class dirpath_t;
+    struct filesysroot_t;
+    struct pathdevice_t;
     class filesystem_t;
     class filedevice_t;
     class pathreg_t;
@@ -41,11 +45,6 @@ namespace ncore
     // Filename                 = "Filename.ext"
     // FilenameWithoutExtension = "Filename"
     //==============================================================================
-
-    class filepath_t;
-    class dirpath_t;
-    struct filesysroot_t;
-    struct pathdevice_t;
 
     // The whole path table should become a red-black tree and not a hash table.
     // Every 'folder' has siblings (files and folders), each 'folder' sibling again
@@ -91,19 +90,19 @@ namespace ncore
         pathdevice_t* attach(pathdevice_t* device) { return device; }
         void          detach(pathdevice_t* device) {}
 
-        pathstr_t findOrInsert(crunes_t const& str);
-        bool      remove(pathstr_t item);
-        folder_t* findOrInsert(folder_t* parent, pathstr_t* str);
-        bool      remove(folder_t* item);
-        void      to_string(pathstr_t* str, runes_t& out_str) const;
-        s32       to_strlen(folder_t* str) const;
-        s32       compare_str(pathstr_t left, pathstr_t right) const { return m_strings->compare(left, right); }
-        s32       compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
+        pathstr_t  findOrInsert(crunes_t const& str);
+        bool       remove(pathstr_t item);
+        pathnode_t findOrInsert(pathnode_t parent, pathstr_t str);
+        bool       remove(folder_t* item);
+        void       to_string(pathstr_t* str, runes_t& out_str) const;
+        s32        to_strlen(folder_t* str) const;
+        s32        compare_str(pathstr_t left, pathstr_t right) const { return m_strings->compare(left, right); }
+        s32        compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
 
-        pathstr_db_t*              m_strings;
-        rbtree_t                   m_nodes;
-        virtual_array_t<pathstr_t> m_file_array;   // Virtual memory array of pathstr_t[]
-        virtual_array_t<folder_t>  m_folder_array; // Virtual memory array of folder_t[]
+        pathstr_db_t*                 m_strings;
+        rbtree_t                      m_nodes;
+        virtual_freelist_t<pathstr_t> m_file_array;   // Virtual memory array of pathstr_t[]
+        virtual_freelist_t<folder_t>  m_folder_array; // Virtual memory array of folder_t[]
     };
 
     typedef u32 rbnode_t;
@@ -128,8 +127,8 @@ namespace ncore
         rbnode_t   m_devicePath;   // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
         s16        m_device_index; // index into m_pathreg->m_arr_devices
         s16        m_redirector;   // If device path can point to another pathdevice_t
-        u32        m_userdata1;    //
-        u32        m_userdata2;    //
+        s32        m_userdata1;    //
+        s32        m_userdata2;    //
     };
 }; // namespace ncore
 

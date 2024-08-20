@@ -25,9 +25,9 @@ namespace ncore
         void init(alloc_t* allocator, u32 init_num_items = 8192, u32 max_num_items = 1024 * 1024);
         void exit(alloc_t* allocator);
 
-        bool find(rbnode_t root, u32 const item, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
-        bool insert(rbnode_t& root, u32 const item, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
-        bool remove(rbnode_t& root, u32 const item, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
+        bool find(rbnode_t root, u32 const find, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
+        bool insert(rbnode_t& root, u32 const insert, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
+        bool remove(rbnode_t& root, u32 const remove, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
 
         inline void     set_item(rbnode_t index, u32 item) const { *((u32*)m_item_array.m_ptr + index) = item; }
         inline u32      get_item(rbnode_t index) const { return *((u32 const*)m_item_array.m_ptr + index); }

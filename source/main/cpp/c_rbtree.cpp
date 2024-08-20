@@ -32,6 +32,20 @@ namespace ncore
         m_free_index = 1;
     }
 
+    bool rbtree_t::find(rbnode_t root, u32 const find, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data)
+    {
+        rbnode_t node = root;
+        while (node != 0)
+        {
+            u32 const item = get_item(node);
+            s8 const c = cmp(find, item, user_data);
+            if (c == 0)
+                return true;
+            node = get_child(node, (c + 1) >> 1);
+        }
+        return false;
+    }
+
     rbnode_t rbtree_t::get_child(rbnode_t node, s8 child) const
     {
         u32 const* child_ptr = child == 0 ? (u32 const*)m_node_left_array.m_ptr : (u32 const*)m_node_right_array.m_ptr;
