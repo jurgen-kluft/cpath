@@ -80,25 +80,26 @@ namespace ncore
             s16       find_device(istring_t devicename) const;
             device_t* get_device(s16 index);
 
-            void attach_pathstr(istring_t name);
-            void attach_pathnode(inode_t path);
-            void attach_pathdevice(s16 idevice);
-            void attach_pathdevice(device_t* device);
+            istring_t attach_pathstr(istring_t name);
+            inode_t   attach_pathnode(inode_t path);
+            s16       attach_pathdevice(s16 idevice);
+            device_t* attach_pathdevice(device_t* device);
 
             istring_t release_pathstr(istring_t name);
             inode_t   release_pathnode(inode_t path);
             s16       release_pathdevice(s16 idevice);
             s16       release_pathdevice(device_t* device);
 
-            ifolder_t get_parent_path(ifolder_t path);
-            istring_t find_string(crunes_t const& str);
-            istring_t findOrInsert(crunes_t const& str);
-            bool      remove(istring_t item);
+            ifolder_t       get_parent_path(ifolder_t path);
+            istring_t       find_string(crunes_t const& str);
+            istring_t       findOrInsert(crunes_t const& str);
+            string_t const* get_string(istring_t str) const;
+            bool            remove(istring_t item);
 
             ifolder_t findOrInsert(ifolder_t parent, istring_t str);
             bool      remove(folder_t* item);
-            void      to_string(istring_t* str, runes_t& out_str) const;
-            s32       to_strlen(folder_t* str) const;
+            void      to_string(istring_t str, runes_t& out_str) const;
+            s32       to_strlen(inode_t str) const;
             s32       compare_str(istring_t left, istring_t right) const { return m_strings->compare(left, right); }
             s32       compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
 

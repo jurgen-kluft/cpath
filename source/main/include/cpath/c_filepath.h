@@ -54,9 +54,9 @@ namespace ncore
 
         void setDevice(crunes_t const& devicename);
         void setDirpath(dirpath_t const& dirpath);
-        void setFilename(npath::istring_t* filename);
+        void setFilename(npath::istring_t filename);
         void setFilename(crunes_t const& filename);
-        void setExtension(npath::istring_t* extension);
+        void setExtension(npath::istring_t extension);
         void setExtension(crunes_t const& extension);
 
         dirpath_t  root() const;
@@ -69,10 +69,10 @@ namespace ncore
         npath::istring_t extensionstr() const;
 
         void split(s32 pivot, dirpath_t& left, filepath_t& right) const;
-        void truncate(filepath_t& filepath, npath::inode_t*& folder) const;
-        void truncate(npath::inode_t*& folder, filepath_t& filepath) const;
-        void combine(npath::inode_t* folder, filepath_t const& filepath);
-        void combine(filepath_t const& filepath, npath::inode_t* folder);
+        void truncate(filepath_t& filepath, npath::inode_t& folder) const;
+        void truncate(npath::inode_t& folder, filepath_t& filepath) const;
+        void combine(npath::inode_t folder, filepath_t const& filepath);
+        void combine(filepath_t const& filepath, npath::inode_t folder);
 
         void down(crunes_t const& folder);
         void up();

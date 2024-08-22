@@ -18,7 +18,7 @@ namespace ncore
     dirpath_t::dirpath_t(dirpath_t const& other)
     {
         m_device = other.m_device->attach();
-        m_path   = other.m_device->m_root->attach(other.m_path);
+        m_path   = other.m_device->m_root->attach_pathnode(other.m_path);
     }
     dirpath_t::dirpath_t(npath::device_t* device)
     {
@@ -27,8 +27,8 @@ namespace ncore
     }
     dirpath_t::dirpath_t(npath::device_t* device, npath::inode_t path)
     {
-        m_device = m_device->m_root->attach(device);
-        m_path   = m_device->m_root->attach(path);
+        m_device = m_device->m_root->attach_pathdevice(device);
+        m_path   = m_device->m_root->attach_pathnode(path);
     }
 
     dirpath_t::~dirpath_t()
@@ -89,7 +89,7 @@ namespace ncore
         dirpath_t      dp(m_device);
         npath::root_t* root = m_device->m_root;
         npath::inode_t left = 0;
-        dp.m_path           = m_device->m_root->attach(left);
+        dp.m_path           = m_device->m_root->attach_pathnode(left);
         return dp;
     }
 
@@ -188,8 +188,8 @@ namespace ncore
         root->release_pathdevice(m_device);
         root->release_pathstr(m_path);
 
-        m_device = root->attach(other.m_device);
-        m_path   = root->attach(other.m_path);
+        m_device = root->attach_pathdevice(other.m_device);
+        m_path   = root->attach_pathnode(other.m_path);
         return *this;
     }
 
