@@ -49,7 +49,15 @@ namespace ncore
 
             // -----------------------------------------------------------
             void register_fulldirpath(crunes_t const& fulldirpath, istring_t& out_devicename, ifolder_t& out_path);
+            void register_fulldirpath(const char* fulldirpath, istring_t& out_devicename, ifolder_t& out_path);
+            void register_fulldirpath(crunes_t const& fulldirpath, dirpath_t& out_dirpath);
+            void register_fulldirpath(const char* fulldirpath, dirpath_t& out_dirpath);
+
             void register_fullfilepath(crunes_t const& fullfilepath, istring_t& out_devicename, ifolder_t& out_path, istring_t& out_filename, istring_t& out_extension);
+            void register_fullfilepath(const char* fullfilepath, istring_t& out_devicename, ifolder_t& out_path, istring_t& out_filename, istring_t& out_extension);
+            void register_fullfilepath(crunes_t const& fullfilepath, filepath_t& out_filepath);
+            void register_fullfilepath(const char* fullfilepath, filepath_t& out_filepath);
+
             void register_dirpath(crunes_t const& dirpath, ifolder_t& out_path);
             void register_filename(crunes_t const& namestr, istring_t& filename, istring_t& extension);
             void register_name(crunes_t const& namestr, istring_t& name);

@@ -6,7 +6,7 @@
 #include "cunittest/cunittest.h"
 
 #include "cpath/c_dirpath.h"
-#include "cpath/private/c_pathreg.h"
+#include "cpath/private/c_root.h"
 
 #include "cpath/test_allocator.h"
 
@@ -41,11 +41,11 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
 		UNITTEST_TEST(constructor2)
 		{
-            pathreg_t reg;
+            npath::root_t reg;
             reg.init(Allocator);
 
 			dirpath_t dirpath;
-            reg.dirpath("c:\\the\\name\\is\\johhnywalker\\", dirpath);
+            reg.register_fulldirpath("c:\\the\\name\\is\\johhnywalker\\", dirpath);
 
 			CHECK_EQUAL(false, dirpath.isEmpty());
 
@@ -54,13 +54,13 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
 		UNITTEST_TEST(to_string)
 		{
-            pathreg_t reg;
+            npath::root_t reg;
             reg.init(Allocator);
 
 			const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
 
 			dirpath_t dirpath;
-            reg.dirpath(asciidirstr, dirpath);
+            reg.register_fulldirpath(asciidirstr, dirpath);
 			nrunes::runestr_t<ascii::rune, 128> dirstr;
 			dirpath.to_string(dirstr);
 			CHECK_EQUAL(0, compare(dirstr, asciidirstr));

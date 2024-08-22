@@ -6,7 +6,7 @@
 #include "cunittest/cunittest.h"
 
 #include "cpath/c_filepath.h"
-#include "cpath/private/c_pathreg.h"
+#include "cpath/private/c_root.h"
 
 #include "cpath/test_allocator.h"
 
@@ -34,12 +34,12 @@ UNITTEST_SUITE_BEGIN(filepath)
 
 		UNITTEST_TEST(constructor2)
 		{
-            pathreg_t reg;
+            npath::root_t reg;
             reg.init(Allocator);
 
 			const char* str = "TEST:\\textfiles\\docs\\readme.txt";
 			filepath_t p;
-            reg.filepath(str, p);
+            reg.register_fullfilepath(str, p);
 
 			CHECK_FALSE(p.isEmpty());
 
