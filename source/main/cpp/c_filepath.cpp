@@ -214,7 +214,6 @@ namespace ncore
     }
 
     bool operator==(const filepath_t& left, const filepath_t& right) { return left.compare(right) == 0; }
-
     bool operator!=(const filepath_t& left, const filepath_t& right) { return left.compare(right) != 0; }
 
     filepath_t operator+(const dirpath_t& dirpath, const filepath_t& filepath) { return filepath_t(dirpath, filepath.filenamestr(), filepath.extensionstr()); }

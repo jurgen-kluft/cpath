@@ -28,7 +28,7 @@ namespace ncore
         {
             strings_t();
 
-            void init(alloc_t* allocator, u32 cap = 1024 * 1024);
+            void init(alloc_t* allocator, u32 cap = 16 * 1024 * 1024);
             void exit(alloc_t* allocator);
 
             string_t* attach(string_t* node);

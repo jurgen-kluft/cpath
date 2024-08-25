@@ -15,8 +15,37 @@ namespace ncore
     {
         // Note: Index 0 is used as a null index
         typedef u32 inode_t;
+
+        namespace ntree2
+        {
+            struct node_t;
+        }
+
+        enum echild_t
+        {
+            LEFT  = 0,
+            RIGHT = 1,
+        };
+
+        enum ecolor_t
+        {
+            RED   = 0,
+            BLACK = 1,
+        };
+
         struct tree_t
         {
+            void init(alloc_t* allocator, u32 init_num_items = 16384, u32 max_num_items = 16 * 1024 * 1024);
+            void exit(alloc_t* allocator);
+            void reset();
+
+            typedef s8 (*item_cmp)(u32 const find_item, u32 const node_item, void const* user_data);
+
+            bool find(inode_t root, u32 const find, item_cmp cmp, void const* user_data);
+            bool insert(inode_t& root, u32 const insert, item_cmp cmp, void const* user_data);
+            bool remove(inode_t& root, u32 const remove, item_cmp cmp, void const* user_data);
+
+        protected:
             virtual_buffer_t m_item_array;       // Virtual memory array of u32[]
             virtual_buffer_t m_node_left_array;  // Virtual memory array of u32[]
             virtual_buffer_t m_node_right_array; // Virtual memory array of u32[]
@@ -24,30 +53,31 @@ namespace ncore
             u32              m_free_head;        // Head of the free list
             u32              m_free_index;       // Index of the free list
 
-            void init(alloc_t* allocator, u32 init_num_items = 8192, u32 max_num_items = 1024 * 1024);
-            void exit(alloc_t* allocator);
+            inode_t rotate_single(inode_t node, s32 dir);
+            inode_t rotate_double(inode_t node, s32 dir);
+            inode_t rotate_single_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp);
+            inode_t rotate_double_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp);
 
-            bool find(inode_t root, u32 const find, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
-            bool insert(inode_t& root, u32 const insert, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
-            bool remove(inode_t& root, u32 const remove, s8 (*cmp)(u32 const find_item, u32 const node_item, void const* user_data), void const* user_data);
-
-            // item can be one of ifolder_t or istring_t
-            inline void    set_item(inode_t index, u32 item) const { *((u32*)m_item_array.m_ptr + index) = item; }
-            inline u32     get_item(inode_t index) const { return *((u32 const*)m_item_array.m_ptr + index); }
-            inline bool    is_red(inode_t index) const { return (m_color_array.m_ptr[index >> 3] & (1 << (index & 0x07))) != 0; }
-            inline bool    is_black(inode_t index) const { return (m_color_array.m_ptr[index >> 3] & (1 << (index & 0x07))) == 0; }
-            inline void    set_red(inode_t index) { m_color_array.m_ptr[index >> 3] |= (1 << (index & 0x07)); }
-            inline void    set_black(inode_t index) { m_color_array.m_ptr[index >> 3] &= ~(1 << (index & 0x07)); }
-            inline inode_t get_left(inode_t index) const { return *((u32 const*)m_node_left_array.m_ptr + index); }
-            inline inode_t get_right(inode_t index) const { return *((u32 const*)m_node_right_array.m_ptr + index); }
-            inline void    set_left(inode_t index, inode_t child_index) { *((u32*)m_node_left_array.m_ptr + index) = child_index; }
-            inline void    set_right(inode_t index, inode_t child_index) { *((u32*)m_node_right_array.m_ptr + index) = child_index; }
-            inode_t        get_child(inode_t index, s8 child) const;
-            void           set_child(inode_t index, s8 child, inode_t child_index);
-
-            inode_t alloc();
-            void    free(inode_t node);
-            void    reset();
+            bool     v_clear(inode_t& _root, inode_t& removed_node);
+            bool     v_clear(inode_t& _root);
+            s32      v_validate(inode_t root, const char*& result, item_cmp cmp, void const* user_data) const;
+            u32      v_get_item(inode_t node) const;
+            void     v_set_item(inode_t node, u32 item);
+            inode_t  v_get_child(inode_t node, s8 ne) const;
+            void     v_set_child(inode_t node, s8 ne, inode_t set);
+            inode_t  v_get_left(inode_t node) const;
+            void     v_set_left(inode_t node, inode_t child);
+            inode_t  v_get_right(inode_t node) const;
+            void     v_set_right(inode_t node, inode_t child);
+            void     v_set_color(inode_t node, ecolor_t color);
+            ecolor_t v_get_color(inode_t node) const;
+            bool     v_is_red(inode_t node) const;
+            bool     v_is_black(inode_t node) const;
+            void     v_set_black(inode_t node);
+            void     v_set_red(inode_t node);
+            inode_t  v_get_temp();
+            inode_t  v_new_node(u32 _item);
+            void     v_del_node(inode_t node);
         };
     } // namespace npath
 } // namespace ncore

@@ -471,16 +471,13 @@ namespace ncore
         //  - No need to deal with forward or backward slash
         //
         //  Use cases:
-        //  - From pathreg_t* you can ask for the root directory of a device
-        //    - pathreg_t* root = pathreg_t::root();
         //    - dirpath_t appdir = root->device_root("appdir");
-        //  - So now with an existing dirpath_t dir, you could do the following:
-        //    - dirpath_t bins = appdir.down("bin") // even if this folder doesn't exist, it will be 'added'
+        //    - dirpath_t bins = appdir.down("bin") // even if this folder doesn't exist, it will be 'registered' but not 'created on disk'
         //    - filepath_t coolexe = bins.file("cool.exe");
-        //    - pathnode_t* datafilename; pathnode_t* dataextension;
+        //    - npath::istring_t datafilename; npath::istring_t dataextension;
         //    - root->filename("data.txt", datafilename, dataextension);
         //    - filepath_t datafilepath = bins.file(datafilename, dataextension);
-        //    - filestream_t datastream = datafilepath.open(); // if this file doesn't exist, it will be created
+        //    - filestream_t datastream = open_filestream(datafilepath); // if this file doesn't exist, it will be created
         //    - .. read from the datastream
         //    - datastream.close();
 
