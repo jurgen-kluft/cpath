@@ -40,7 +40,7 @@ namespace ncore
         friend class dirinfo_t;
         friend class filepath_t;
         friend class filedevice_t;
-        friend class npath::root_t;
+        friend struct npath::root_t;
 
     public:
         dirpath_t();

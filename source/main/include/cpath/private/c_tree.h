@@ -41,9 +41,11 @@ namespace ncore
 
             typedef s8 (*item_cmp)(u32 const find_item, u32 const node_item, void const* user_data);
 
-            bool find(inode_t root, u32 const find, item_cmp cmp, void const* user_data);
-            bool insert(inode_t& root, u32 const insert, item_cmp cmp, void const* user_data);
-            bool remove(inode_t& root, u32 const remove, item_cmp cmp, void const* user_data);
+            inode_t find(inode_t root, u32 const find, item_cmp cmp, void const* user_data);
+            bool    insert(inode_t& root, u32 const insert, item_cmp cmp, void const* user_data);
+            bool    remove(inode_t& root, u32 const remove, item_cmp cmp, void const* user_data);
+
+            u32 get_item(inode_t node) const;
 
         protected:
             virtual_buffer_t m_item_array;       // Virtual memory array of u32[]

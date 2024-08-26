@@ -32,9 +32,32 @@ namespace ncore
         m_committed = 0;
     }
 
+    void virtual_buffer_t::reset(u32 initial_capacity, u32 item_size)
+    {
+        // Figure out how much memory we need to uncommit
+        u32 const page_size = vmem_t::page_size();
+        u32 const committed_size = m_committed * item_size;
+        u32 const initial_size = ((initial_capacity * item_size + page_size - 1) / page_size) * page_size;
+        u32 const uncommit_size = committed_size - initial_size;
+
+        if (uncommit_size > 0)
+        {
+			vmem_t::decommit(m_ptr + initial_size, uncommit_size);
+			m_committed = initial_capacity;
+		}
+    }
+
     void virtual_buffer_t::add_capacity(u32 capacity, u32 item_size)
     {
-        // TODO
+        // commit size = capacity * item size
+        u32 const page_size = vmem_t::page_size();
+        u32 const commit_size = ((capacity * item_size + page_size - 1) / page_size) * page_size;
+
+        if (commit_size > 0)
+        {
+			vmem_t::commit(m_ptr + m_committed * item_size, commit_size);
+			m_committed += commit_size / item_size;
+		}
     }
 
 }; // namespace ncore

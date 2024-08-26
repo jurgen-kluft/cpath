@@ -12,10 +12,16 @@ namespace ncore
 {
     namespace npath
     {
-        // -------------------------------------------------------------------------------------------
-        //
-        // pathdb_t implementations
-        //
+        strings_t::strings_t()
+            : m_text_data(nullptr)
+            , m_text_data_size(0)
+            , m_text_data_cap(0)
+            , m_str_array()
+            , m_str_tree()
+            , m_str_root(0)
+        {
+		}
+
         void strings_t::init(alloc_t* allocator, u32 cap)
         {
             m_text_data      = allocator->allocate(cap);
@@ -50,63 +56,40 @@ namespace ncore
 
         static s8 compare_str(u32 const find_item, u32 const node_item, void const* user_data)
         {
-            strings_t const* strings = (strings_t const*)user_data;
-            string_t const* find_str = strings->m_str_array.ptr_of(find_item);
-            string_t const* node_str = strings->m_str_array.ptr_of(node_item);
+            strings_t const* strings  = (strings_t const*)user_data;
+            string_t const*  find_str = strings->m_str_array.ptr_of(find_item);
+            string_t const*  node_str = strings->m_str_array.ptr_of(node_item);
             return strings->compare(find_str, node_str);
         }
 
-        istring_t strings_t::findOrInsert(crunes_t const& str)
+        istring_t strings_t::findOrInsert(crunes_t const& _str)
         {
-            // write this string to the text buffer as utf8
-            string_t* str_entry = m_str_array.alloc();
-            str_entry->m_hash   = 0;
-            str_entry->m_len    = 0;
-            str_entry->m_str    = nullptr;
+            utf8::pcrune str8 = _str.m_utf8.m_bos;
+            utf8::pcrune src8 = str8;
+            utf8::pcrune end8 = _str.m_utf8.m_bos + _str.m_utf8.m_eos;
+            utf8::prune dst  = (utf8::prune)m_text_data + m_text_data_size;
+            while (str8 < end8)
+                *dst++ = *src8++;
+            *dst = 0;
 
-            // need a function to write crunes_t to a utf-8 buffer
-            utf8::prune str8 = nullptr;
-            utf8::prune end8 = nullptr;
+            string_t* str       = m_str_array.alloc();
+            u32 const str_index = m_str_array.idx_of(str);
+            str->m_str          = (utf8::prune)m_text_data + m_text_data_size;
+            str->m_hash         = hash(str8, end8);
+            str->m_len          = _str.m_utf8.m_eos;
 
-            u32 const str_hash = hash(str8, end8);
-            u32 const str_len  = end8 - str8;
-
-            // See if we can find the string in the tree
-            inode_t node = m_str_root;
-            while (node != 0)
+            inode_t node = m_str_tree.find(m_str_root, str_index, compare_str, this);
+            if (node != 0)
             {
-                istring_t pathstr = m_str_tree.get_item(node);
-                string_t* it      = m_str_array.ptr_of(pathstr);
-
-                s32 c;
-                if (str_hash == it->m_hash)
-                {
-                    // binary comparison
-                    utf8::pcrune ostr8 = it->m_str;
-                    utf8::pcrune oend8 = it->m_str + it->m_len;
-                    c                  = compare_buffers(str8, end8, ostr8, oend8);
-                    if (c == 0)
-                    {
-                        m_str_array.free(str_entry);
-                        return pathstr;
-                    }
-                    c = (c + 1) >> 1;
-                }
-                else
-                {
-                    c = (str_hash < it->m_hash) ? 0 : 1;
-                }
-                node = m_str_tree.get_child(node, c);
+                m_str_array.free(str);
+                u32 const index = m_str_tree.get_item(node);
+                return index;
             }
 
-            str_entry->m_hash = str_hash;
-            str_entry->m_len  = str_len;
-            str_entry->m_str  = str8;
+            m_text_data_size += str->m_len + 1;
 
-            u32 const str_entry_index = m_str_array.idx_of(str_entry);
-            m_str_tree.insert(m_str_root, str_entry_index, compare_str, this);
-
-            return str_entry_index;
+            m_str_tree.insert(m_str_root, str_index, compare_str, this);
+            return str_index;
         }
 
         bool strings_t::remove(string_t* item) { return true; }

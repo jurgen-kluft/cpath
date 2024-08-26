@@ -16,17 +16,9 @@ namespace ncore
 {
     namespace npath
     {
-        // -------------------------------------------------------------------------------------------
-        //
-        // root_t functions
-        //
-        /*
-            Every folder has a name, has a parent folder (except for the root folder), and has a bst that
-            contains all the child folders and files. The bst is sorted by the name of the file/folder.
-        */
         device_t* root_t::sNilDevice;
 
-        void root_t::init(alloc_t* allocator, u32 cap = 1024 * 1024)
+        void root_t::init(alloc_t* allocator, u32 max_items)
         {
             m_allocator = allocator;
 
@@ -35,7 +27,7 @@ namespace ncore
             m_arr_devices = (device_t**)m_allocator->allocate(m_max_devices * sizeof(device_t*));
             for (s32 i = 0; i < m_max_devices; ++i)
             {
-                m_arr_devices[i] = m_allocator->construct<device_t>(m_allocator);
+                m_arr_devices[i] = (device_t*)m_allocator->allocate(sizeof(device_t), sizeof(void*));
             }
 
             sNilDevice               = m_arr_devices[0];
@@ -47,8 +39,8 @@ namespace ncore
             sNilDevice->m_userdata1  = 0;
             sNilDevice->m_userdata2  = 0;
 
-            m_strings = m_allocator->construct<strings_t>(m_allocator);
-            m_strings->init(m_allocator, cap);
+            m_strings = (strings_t*)m_allocator->allocate(sizeof(strings_t), sizeof(void*));
+            m_strings->init(m_allocator, max_items);
             m_folders.init(m_allocator);
         }
 

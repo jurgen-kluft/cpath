@@ -14,7 +14,7 @@ namespace ncore
         u32  m_committed; // Current committed item count (unit=item size), memory size = m_committed * item size
         void init(u32 initial_capacity, u32 max_capacity, u32 item_size = 1);
         void exit();
-        void reset(u32 initial_capacity, u32 max_capacity, u32 item_size = 1);
+        void reset(u32 initial_capacity, u32 item_size = 1);
         void add_capacity(u32 add_capacity, u32 item_size = 1);
     };
 }; // namespace ncore

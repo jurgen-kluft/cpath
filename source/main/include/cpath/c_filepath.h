@@ -35,7 +35,7 @@ namespace ncore
 
         friend class fileinfo_t;
         friend class filedevice_t;
-        friend class npath::root_t;
+        friend struct npath::root_t;
 
     public:
         filepath_t();
