@@ -12,6 +12,7 @@
 #include "cpath/private/c_strings.h"
 #include "cpath/private/c_freelist.h"
 #include "cpath/private/c_tree.h"
+#include "cpath/private/c_root.h"
 
 namespace ncore
 {
@@ -25,7 +26,7 @@ namespace ncore
         typedef u32 ifolder_t;
         struct folder_t
         {
-            istring_t m_parent;  // folder parent (index into m_folder_array)
+            ifolder_t m_parent;  // folder parent (index into m_folder_array)
             istring_t m_name;    // folder name (index into m_strings)
             inode_t   m_files;   // Tree of files (tree node index)
             inode_t   m_folders; // Tree of folders (tree node index)
@@ -44,21 +45,21 @@ namespace ncore
             void exit(alloc_t* allocator);
 
             // -----------------------------------------------------------
-            void resolve(filepath_t const&, device_t*& device, ifolder_t& dir, istring_t& filename, istring_t& extension);
-            void resolve(dirpath_t const&, device_t*& device, ifolder_t& dir);
+            void resolve(filepath_t const&, device_t*& device, inode_t& dir, istring_t& filename, istring_t& extension);
+            void resolve(dirpath_t const&, device_t*& device, inode_t& dir);
 
             // -----------------------------------------------------------
-            void register_fulldirpath(crunes_t const& fulldirpath, istring_t& out_devicename, ifolder_t& out_path);
-            void register_fulldirpath(const char* fulldirpath, istring_t& out_devicename, ifolder_t& out_path);
+            void register_fulldirpath(crunes_t const& fulldirpath, istring_t& out_devicename, inode_t& out_path);
+            void register_fulldirpath(const char* fulldirpath, istring_t& out_devicename, inode_t& out_path);
             void register_fulldirpath(crunes_t const& fulldirpath, dirpath_t& out_dirpath);
             void register_fulldirpath(const char* fulldirpath, dirpath_t& out_dirpath);
 
-            void register_fullfilepath(crunes_t const& fullfilepath, istring_t& out_devicename, ifolder_t& out_path, istring_t& out_filename, istring_t& out_extension);
-            void register_fullfilepath(const char* fullfilepath, istring_t& out_devicename, ifolder_t& out_path, istring_t& out_filename, istring_t& out_extension);
+            void register_fullfilepath(crunes_t const& fullfilepath, istring_t& out_devicename, inode_t& out_path, istring_t& out_filename, istring_t& out_extension);
+            void register_fullfilepath(const char* fullfilepath, istring_t& out_devicename, inode_t& out_path, istring_t& out_filename, istring_t& out_extension);
             void register_fullfilepath(crunes_t const& fullfilepath, filepath_t& out_filepath);
             void register_fullfilepath(const char* fullfilepath, filepath_t& out_filepath);
 
-            void register_dirpath(crunes_t const& dirpath, ifolder_t& out_path);
+            void register_dirpath(crunes_t const& dirpath, inode_t& out_path);
             void register_filename(crunes_t const& namestr, istring_t& filename, istring_t& extension);
             void register_name(crunes_t const& namestr, istring_t& name);
             bool register_userdata1(const crunes_t& devpathstr, s32 userdata1);
@@ -90,13 +91,13 @@ namespace ncore
             s16       release_pathdevice(s16 idevice);
             s16       release_pathdevice(device_t* device);
 
-            ifolder_t       get_parent_path(ifolder_t path);
+            inode_t       get_parent_path(inode_t path);
             istring_t       find_string(crunes_t const& str);
             istring_t       findOrInsert(crunes_t const& str);
             string_t const* get_string(istring_t str) const;
             bool            remove(istring_t item);
 
-            ifolder_t findOrInsert(ifolder_t parent, istring_t str);
+            inode_t findOrInsert(inode_t parent, istring_t str);
             bool      remove(folder_t* item);
             void      to_string(istring_t str, runes_t& out_str) const;
             s32       to_strlen(inode_t str) const;
@@ -115,12 +116,12 @@ namespace ncore
             device_t**           m_arr_devices;
             strings_t*           m_strings;
             tree_t*              m_nodes;
-            freelist_t<folder_t> m_folders; // Virtual memory array of folder_t[]
+            freelist_t<folder_t> m_folders; 
 
             static device_t* sNilDevice;
             static inode_t   sNilNode;
             static istring_t sNilStr;
-            static ifolder_t sNilFolder;
+            static inode_t sNilFolder;
         };
 
         struct device_t
