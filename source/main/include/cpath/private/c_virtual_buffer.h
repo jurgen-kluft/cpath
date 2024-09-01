@@ -16,6 +16,7 @@ namespace ncore
         void exit();
         void reset(u32 initial_capacity, u32 item_size = 1);
         void add_capacity(u32 add_capacity, u32 item_size = 1);
+        u8*  allocate(u8*& ptr, u32 items, u32 item_size = 1, u32 add_capacity_when_needed = 1024*1024);
     };
 }; // namespace ncore
 

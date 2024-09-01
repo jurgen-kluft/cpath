@@ -62,20 +62,27 @@ namespace ncore
             m_num_devices = 0;
         }
 
-        istring_t root_t::findOrInsert(crunes_t const& namestr)
+        string_t root_t::findOrInsert(crunes_t const& namestr)
         {
-            istring_t name = 0;
+            string_t name = 0;
 
             return name;
         }
 
-        void root_t::register_name(crunes_t const& namestr, istring_t& outname)
+        crunes_t root_t::get_crunes(string_t str) const
+        {
+            crunes_t r;
+            m_strings->to_string(str, r);
+            return r;
+        }
+
+        void root_t::register_name(crunes_t const& namestr, string_t& outname)
         {
             // TODO register this string at m_strings
             outname = 0;
         }
 
-        void root_t::register_fulldirpath(crunes_t const& fulldirpath, istring_t& outdevicename, inode_t& outnode)
+        void root_t::register_fulldirpath(crunes_t const& fulldirpath, string_t& outdevicename, node_t& outnode)
         {
             pathparser_t parser;
             parser.parse(fulldirpath);
@@ -90,18 +97,18 @@ namespace ncore
             if (parser.has_path())
             {
                 crunes_t folder      = parser.iterate_folder();
-                inode_t  parent_node = 0;
+                node_t   parent_node = 0;
                 do
                 {
-                    istring_t folder_pathstr = this->findOrInsert(folder);
-                    inode_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
-                    parent_node              = folder_node;
+                    string_t folder_pathstr = this->findOrInsert(folder);
+                    node_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
+                    parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
             }
         }
 
-        void root_t::register_dirpath(crunes_t const& dirpath, inode_t& outnode)
+        void root_t::register_dirpath(crunes_t const& dirpath, node_t& outnode)
         {
             pathparser_t parser;
             parser.parse(dirpath);
@@ -110,29 +117,29 @@ namespace ncore
             if (parser.has_path())
             {
                 crunes_t folder      = parser.iterate_folder();
-                inode_t  parent_node = 0;
+                node_t   parent_node = 0;
                 do
                 {
-                    istring_t folder_pathstr = this->findOrInsert(folder);
-                    inode_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
-                    parent_node              = folder_node;
+                    string_t folder_pathstr = this->findOrInsert(folder);
+                    node_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
+                    parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
             }
         }
 
-        void root_t::register_filename(crunes_t const& namestr, istring_t& out_filename, istring_t& out_extension)
+        void root_t::register_filename(crunes_t const& namestr, string_t& out_filename, string_t& out_extension)
         {
-            crunes_t filename_str    = namestr;
-            filename_str             = nrunes::findLastSelectUntil(filename_str, '.');
-            crunes_t  extension_str  = nrunes::selectAfterExclude(namestr, filename_str);
-            istring_t filename_name  = this->findOrInsert(filename_str);
-            istring_t extension_name = this->findOrInsert(extension_str);
-            out_filename             = filename_name;
-            out_extension            = extension_name;
+            crunes_t filename_str   = namestr;
+            filename_str            = nrunes::findLastSelectUntil(filename_str, '.');
+            crunes_t extension_str  = nrunes::selectAfterExclude(namestr, filename_str);
+            string_t filename_name  = this->findOrInsert(filename_str);
+            string_t extension_name = this->findOrInsert(extension_str);
+            out_filename            = filename_name;
+            out_extension           = extension_name;
         }
 
-        void root_t::register_fullfilepath(crunes_t const& fullfilepath, istring_t& out_device, inode_t& out_path, istring_t& out_filename, istring_t& out_extension)
+        void root_t::register_fullfilepath(crunes_t const& fullfilepath, string_t& out_device, node_t& out_path, string_t& out_filename, string_t& out_extension)
         {
             pathparser_t parser;
             parser.parse(fullfilepath);
@@ -161,7 +168,7 @@ namespace ncore
             }
         }
 
-        s16 root_t::find_device(istring_t devicename) const
+        s16 root_t::find_device(string_t devicename) const
         {
             for (s16 i = 0; i < m_num_devices; ++i)
             {
@@ -173,7 +180,7 @@ namespace ncore
             return -1;
         }
 
-        s16 root_t::register_device(istring_t devicename)
+        s16 root_t::register_device(string_t devicename)
         {
             s16 device = find_device(devicename);
             if (device == -1)
@@ -201,13 +208,13 @@ namespace ncore
             return m_arr_devices[index];
         }
 
-        inode_t root_t::get_parent_path(inode_t path)
+        node_t root_t::get_parent_path(node_t path)
         {
             // get folder_t*, then return the parent
             return 0;
         }
 
-        void root_t::resolve(filepath_t const& fp, device_t*& device, inode_t& dir, istring_t& filename, istring_t& extension)
+        void root_t::resolve(filepath_t const& fp, device_t*& device, node_t& dir, string_t& filename, string_t& extension)
         {
             device    = get_pathdevice(fp);
             dir       = get_path(fp);
@@ -215,7 +222,7 @@ namespace ncore
             extension = get_extension(fp);
         }
 
-        void root_t::resolve(dirpath_t const& dp, device_t*& device, inode_t& dir)
+        void root_t::resolve(dirpath_t const& dp, device_t*& device, node_t& dir)
         {
             device = get_pathdevice(dp);
             dir    = get_path(dp);
@@ -223,10 +230,10 @@ namespace ncore
 
         device_t* root_t::get_pathdevice(dirpath_t const& dirpath) { return dirpath.m_device; }
         device_t* root_t::get_pathdevice(filepath_t const& filepath) { return filepath.m_dirpath.m_device; }
-        inode_t   root_t::get_path(dirpath_t const& dirpath) { return dirpath.m_path; }
-        inode_t   root_t::get_path(filepath_t const& filepath) { return filepath.m_dirpath.m_path; }
-        istring_t root_t::get_filename(filepath_t const& filepath) { return filepath.m_filename; }
-        istring_t root_t::get_extension(filepath_t const& filepath) { return filepath.m_extension; }
+        node_t    root_t::get_path(dirpath_t const& dirpath) { return dirpath.m_path; }
+        node_t    root_t::get_path(filepath_t const& filepath) { return filepath.m_dirpath.m_path; }
+        string_t  root_t::get_filename(filepath_t const& filepath) { return filepath.m_filename; }
+        string_t  root_t::get_extension(filepath_t const& filepath) { return filepath.m_extension; }
         root_t*   root_t::get_root(dirpath_t const& dirpath) { return dirpath.m_device->m_root; }
         root_t*   root_t::get_root(filepath_t const& filepath) { return filepath.m_dirpath.m_device->m_root; }
 
@@ -244,10 +251,10 @@ namespace ncore
 
         // void root_t::filepath(const crunes_t& str, filepath_t& fp)
         // {
-        //     istring_t devicename = 0;
-        //     inode_t   path       = 0;
-        //     istring_t filename   = 0;
-        //     istring_t extension  = 0;
+        //     string_t devicename = 0;
+        //     node_t   path       = 0;
+        //     string_t filename   = 0;
+        //     string_t extension  = 0;
         //     register_fullfilepath(str, devicename, path, filename, extension);
 
         //     s16 const  device  = register_device(devicename);
@@ -258,8 +265,8 @@ namespace ncore
 
         // void root_t::dirpath(const crunes_t& str, dirpath_t& dp)
         // {
-        //     istring_t devicename = 0;
-        //     inode_t   path       = 0;
+        //     string_t devicename = 0;
+        //     node_t   path       = 0;
         //     register_fulldirpath(str, devicename, path);
         //     s16 const device  = register_device(devicename);
         //     device_t* pdevice = get_device(device);
@@ -269,7 +276,7 @@ namespace ncore
 
         bool root_t::has_device(const crunes_t& device_name)
         {
-            istring_t devname = find_string(device_name);
+            string_t devname = find_string(device_name);
             if (devname != 0)
             {
                 s16 const dev = find_device(devname);
@@ -280,8 +287,8 @@ namespace ncore
 
         bool root_t::register_userdata1(const crunes_t& devpathstr, s32 userdata1)
         {
-            istring_t devname = 0;
-            inode_t   devpath = 0;
+            string_t devname = 0;
+            node_t   devpath = 0;
             register_fulldirpath(devpathstr, devname, devpath);
 
             s16 const device  = register_device(devname);
@@ -296,8 +303,8 @@ namespace ncore
 
         bool root_t::register_userdata2(const crunes_t& devpathstr, s32 userdata2)
         {
-            istring_t devname = 0;
-            inode_t   devpath = 0;
+            string_t devname = 0;
+            node_t   devpath = 0;
             register_fulldirpath(devpathstr, devname, devpath);
 
             s16 const device  = register_device(devname);
@@ -312,11 +319,11 @@ namespace ncore
 
         bool root_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
         {
-            istring_t aliasname;
+            string_t aliasname;
             register_name(aliasstr, aliasname);
 
-            istring_t devname = 0;
-            inode_t   devpath = 0;
+            string_t devname = 0;
+            node_t   devpath = 0;
             register_fulldirpath(devpathstr, devname, devpath);
 
             s16 const device    = register_device(aliasname);
@@ -466,7 +473,7 @@ namespace ncore
         //    - dirpath_t appdir = root->device_root("appdir");
         //    - dirpath_t bins = appdir.down("bin") // even if this folder doesn't exist, it will be 'registered' but not 'created on disk'
         //    - filepath_t coolexe = bins.file("cool.exe");
-        //    - npath::istring_t datafilename; npath::istring_t dataextension;
+        //    - npath::string_t datafilename; npath::string_t dataextension;
         //    - root->filename("data.txt", datafilename, dataextension);
         //    - filepath_t datafilepath = bins.file(datafilename, dataextension);
         //    - filestream_t datastream = open_filestream(datafilepath); // if this file doesn't exist, it will be created

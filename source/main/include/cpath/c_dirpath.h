@@ -26,15 +26,15 @@ namespace ncore
     {
         struct root_t;
         struct device_t;
-        typedef u32 inode_t;
-        typedef u32 istring_t;
+        typedef u32 node_t;
+        typedef u32 string_t;
     } // namespace npath
 
     class dirpath_t
     {
     protected:
         npath::device_t* m_device; // "E:\" (the file device)
-        npath::inode_t   m_path;   // "documents\old\inventory\books\sci-fi\"
+        npath::node_t    m_path;   // "documents\old\inventory\books\sci-fi\"
 
         friend class fileinfo_t;
         friend class dirinfo_t;
@@ -46,7 +46,7 @@ namespace ncore
         dirpath_t();
         dirpath_t(dirpath_t const& other);
         dirpath_t(npath::device_t* device);
-        dirpath_t(npath::device_t* device, npath::inode_t path);
+        dirpath_t(npath::device_t* device, npath::node_t path);
         ~dirpath_t();
 
         void clear();
@@ -59,9 +59,9 @@ namespace ncore
 
         dirpath_t relative();
 
-        npath::istring_t devname() const;  // "E:\documents\old\inventory\", -> "E:\"
-        npath::istring_t rootname() const; // "E:\documents\old\inventory\", -> "documents"
-        npath::istring_t basename() const; // "E:\documents\old\inventory\", -> "inventory"
+        npath::string_t devname() const;  // "E:\documents\old\inventory\", -> "E:\"
+        npath::string_t rootname() const; // "E:\documents\old\inventory\", -> "documents"
+        npath::string_t basename() const; // "E:\documents\old\inventory\", -> "inventory"
 
         dirpath_t  device() const;                 // "E:\documents\old\inventory\books\sci-fi\", -> "E:\"
         dirpath_t  root() const;                   // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\"

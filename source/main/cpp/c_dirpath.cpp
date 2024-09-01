@@ -25,7 +25,7 @@ namespace ncore
         m_device = device->attach();
         m_path   = 0;
     }
-    dirpath_t::dirpath_t(npath::device_t* device, npath::inode_t path)
+    dirpath_t::dirpath_t(npath::device_t* device, npath::node_t path)
     {
         m_device = m_device->m_root->attach_pathdevice(device);
         m_path   = m_device->m_root->attach_pathnode(path);
@@ -88,7 +88,7 @@ namespace ncore
     {
         dirpath_t      dp(m_device);
         npath::root_t* root = m_device->m_root;
-        npath::inode_t left = 0;
+        npath::node_t  left = 0;
         dp.m_path           = m_device->m_root->attach_pathnode(left);
         return dp;
     }
@@ -102,17 +102,17 @@ namespace ncore
         return dp;
     }
 
-    npath::istring_t dirpath_t::basename() const
+    npath::string_t dirpath_t::basename() const
     {
         npath::root_t*   root   = m_device->m_root;
         npath::folder_t* folder = root->m_folders.ptr_of(m_path);
         return folder->m_name;
     }
 
-    npath::istring_t dirpath_t::rootname() const
+    npath::string_t dirpath_t::rootname() const
     {
         npath::root_t* root = m_device->m_root;
-        npath::inode_t iter = m_path;
+        npath::node_t  iter = m_path;
 
         npath::folder_t* folder = root->m_folders.ptr_of(iter);
         while (folder->m_parent != 0)
@@ -123,7 +123,7 @@ namespace ncore
         return folder->m_name;
     }
 
-    npath::istring_t dirpath_t::devname() const { return m_device->m_deviceName; }
+    npath::string_t dirpath_t::devname() const { return m_device->m_deviceName; }
 
     s32 dirpath_t::getLevels() const
     {
@@ -131,7 +131,7 @@ namespace ncore
             return 0;
         s32              levels = 1;
         npath::root_t*   root   = m_device->m_root;
-        npath::inode_t   iter   = m_path;
+        npath::node_t    iter   = m_path;
         npath::folder_t* folder = root->m_folders.ptr_of(iter);
         while (folder->m_parent != 0)
         {
@@ -144,14 +144,14 @@ namespace ncore
 
     void dirpath_t::down(crunes_t const& folder)
     {
-        npath::root_t*   root       = m_device->m_root;
-        npath::istring_t folder_str = root->findOrInsert(folder);
-        m_path                      = root->findOrInsert(m_path, folder_str);
+        npath::root_t*  root       = m_device->m_root;
+        npath::string_t folder_str = root->findOrInsert(folder);
+        m_path                     = root->findOrInsert(m_path, folder_str);
     }
 
     void dirpath_t::up()
     {
-        npath::root_t* root = m_device->m_root;
+        npath::root_t*   root   = m_device->m_root;
         npath::folder_t* folder = root->m_folders.ptr_of(m_path);
         root->release_pathstr(m_path);
         m_path = folder->m_parent;

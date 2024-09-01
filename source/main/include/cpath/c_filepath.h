@@ -29,9 +29,9 @@ namespace ncore
 
     class filepath_t
     {
-        dirpath_t        m_dirpath;
-        npath::istring_t m_filename;
-        npath::istring_t m_extension;
+        dirpath_t       m_dirpath;
+        npath::string_t m_filename;
+        npath::string_t m_extension;
 
         friend class fileinfo_t;
         friend class filedevice_t;
@@ -40,9 +40,9 @@ namespace ncore
     public:
         filepath_t();
         filepath_t(const filepath_t&);
-        filepath_t(npath::istring_t filename, npath::istring_t extension);
-        filepath_t(npath::device_t* device, npath::inode_t dirpath, npath::istring_t filename, npath::istring_t extension);
-        filepath_t(dirpath_t const& dirpath, npath::istring_t filename, npath::istring_t extension);
+        filepath_t(npath::string_t filename, npath::string_t extension);
+        filepath_t(npath::device_t* device, npath::node_t dirpath, npath::string_t filename, npath::string_t extension);
+        filepath_t(dirpath_t const& dirpath, npath::string_t filename, npath::string_t extension);
         ~filepath_t();
 
         void clear();
@@ -54,9 +54,9 @@ namespace ncore
 
         void setDevice(crunes_t const& devicename);
         void setDirpath(dirpath_t const& dirpath);
-        void setFilename(npath::istring_t filename);
+        void setFilename(npath::string_t filename);
         void setFilename(crunes_t const& filename);
-        void setExtension(npath::istring_t extension);
+        void setExtension(npath::string_t extension);
         void setExtension(crunes_t const& extension);
 
         dirpath_t  root() const;
@@ -64,15 +64,15 @@ namespace ncore
         filepath_t filename() const;
         filepath_t relative() const;
 
-        npath::inode_t   dirnode() const;
-        npath::istring_t filenamestr() const;
-        npath::istring_t extensionstr() const;
+        npath::node_t   dirnode() const;
+        npath::string_t filenamestr() const;
+        npath::string_t extensionstr() const;
 
         void split(s32 pivot, dirpath_t& left, filepath_t& right) const;
-        void truncate(filepath_t& filepath, npath::inode_t& folder) const;
-        void truncate(npath::inode_t& folder, filepath_t& filepath) const;
-        void combine(npath::inode_t folder, filepath_t const& filepath);
-        void combine(filepath_t const& filepath, npath::inode_t folder);
+        void truncate(filepath_t& filepath, npath::node_t& folder) const;
+        void truncate(npath::node_t& folder, filepath_t& filepath) const;
+        void combine(npath::node_t folder, filepath_t const& filepath);
+        void combine(filepath_t const& filepath, npath::node_t folder);
 
         void down(crunes_t const& folder);
         void up();

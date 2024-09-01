@@ -16,19 +16,19 @@ namespace ncore
         m_extension = m_dirpath.m_device->m_root->attach_pathstr(other.m_extension);
     }
 
-    filepath_t::filepath_t(npath::istring_t filename, npath::istring_t extension) : m_dirpath()
+    filepath_t::filepath_t(npath::string_t filename, npath::string_t extension) : m_dirpath()
     {
         m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
         m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
     }
 
-    filepath_t::filepath_t(npath::device_t* device, npath::inode_t path, npath::istring_t filename, npath::istring_t extension) : m_dirpath(device, path)
+    filepath_t::filepath_t(npath::device_t* device, npath::node_t path, npath::string_t filename, npath::string_t extension) : m_dirpath(device, path)
     {
         m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
         m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
     }
 
-    filepath_t::filepath_t(dirpath_t const& dirpath, npath::istring_t filename, npath::istring_t extension) : m_dirpath(dirpath)
+    filepath_t::filepath_t(dirpath_t const& dirpath, npath::string_t filename, npath::string_t extension) : m_dirpath(dirpath)
     {
         m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
         m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
@@ -71,7 +71,7 @@ namespace ncore
         }
     }
 
-    void filepath_t::setFilename(npath::istring_t filename)
+    void filepath_t::setFilename(npath::string_t filename)
     {
         if (filename != m_filename)
         {
@@ -83,9 +83,9 @@ namespace ncore
 
     void filepath_t::setFilename(crunes_t const& filenamestr)
     {
-        npath::root_t*   root          = m_dirpath.m_device->m_root;
-        npath::istring_t out_filename  = 0;
-        npath::istring_t out_extension = 0;
+        npath::root_t*  root          = m_dirpath.m_device->m_root;
+        npath::string_t out_filename  = 0;
+        npath::string_t out_extension = 0;
         root->register_filename(filenamestr, out_filename, out_extension);
         root->release_pathstr(m_filename);
         root->release_pathstr(m_extension);
@@ -93,7 +93,7 @@ namespace ncore
         m_extension = m_dirpath.m_device->m_root->attach_pathstr(out_extension);
     }
 
-    void filepath_t::setExtension(npath::istring_t extension)
+    void filepath_t::setExtension(npath::string_t extension)
     {
         if (extension != m_extension)
         {
@@ -105,8 +105,8 @@ namespace ncore
 
     void filepath_t::setExtension(crunes_t const& extensionstr)
     {
-        npath::root_t*   root = m_dirpath.m_device->m_root;
-        npath::istring_t extension;
+        npath::root_t*  root = m_dirpath.m_device->m_root;
+        npath::string_t extension;
         root->register_name(extensionstr, extension);
         setExtension(extension);
     }
@@ -122,9 +122,9 @@ namespace ncore
         return fp;
     }
 
-    npath::inode_t   filepath_t::dirnode() const { return m_dirpath.m_path; }
-    npath::istring_t filepath_t::filenamestr() const { return m_filename; }
-    npath::istring_t filepath_t::extensionstr() const { return m_extension; }
+    npath::node_t   filepath_t::dirnode() const { return m_dirpath.m_path; }
+    npath::string_t filepath_t::filenamestr() const { return m_filename; }
+    npath::string_t filepath_t::extensionstr() const { return m_extension; }
 
     void filepath_t::split(s32 pivot, dirpath_t& left, filepath_t& right) const
     {
@@ -137,7 +137,7 @@ namespace ncore
         // right.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
     }
 
-    void filepath_t::truncate(filepath_t& left, npath::inode_t& folder) const
+    void filepath_t::truncate(filepath_t& left, npath::node_t& folder) const
     {
         // left.clear();
         // folder = m_dirpath.basename();
@@ -148,7 +148,7 @@ namespace ncore
         // left.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
     }
 
-    void filepath_t::truncate(npath::inode_t& folder, filepath_t& filepath) const
+    void filepath_t::truncate(npath::node_t& folder, filepath_t& filepath) const
     {
         // filepath.clear();
         // folder = m_dirpath.rootname();
@@ -159,9 +159,9 @@ namespace ncore
         // filepath.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
     }
 
-    void filepath_t::combine(npath::inode_t folder, filepath_t const& filepath) {}
+    void filepath_t::combine(npath::node_t folder, filepath_t const& filepath) {}
 
-    void filepath_t::combine(filepath_t const& filepath, npath::inode_t folder) {}
+    void filepath_t::combine(filepath_t const& filepath, npath::node_t folder) {}
 
     void filepath_t::down(crunes_t const& folder) { m_dirpath.down(folder); }
 
@@ -173,27 +173,25 @@ namespace ncore
 
         m_dirpath.to_string(str);
 
-        npath::string_t const* filenamestr = root->get_string(m_filename);
-        crunes_t               filename_str(filenamestr->m_str, 0, filenamestr->m_len, filenamestr->m_len);
-        nrunes::concatenate(str, filename_str);
+        crunes_t filenamestr = root->get_crunes(m_filename);
+        nrunes::concatenate(str, filenamestr);
 
-        npath::string_t const* extensionstr = root->get_string(m_filename);
-        crunes_t               extension_str(extensionstr->m_str, 0, extensionstr->m_len, extensionstr->m_len);
+        crunes_t extension_str = root->get_crunes(m_filename);
         nrunes::concatenate(str, extension_str);
     }
 
     s32 filepath_t::to_strlen() const
     {
-        npath::root_t* root = m_dirpath.m_device->m_root;
-        npath::string_t const* filenamestr = root->get_string(m_filename);
-        npath::string_t const* extensionstr = root->get_string(m_filename);
-        return m_dirpath.to_strlen() + filenamestr->m_len + extensionstr->m_len;
+        npath::root_t*         root         = m_dirpath.m_device->m_root;
+        crunes_t filenamestr  = root->get_crunes(m_filename);
+        crunes_t extensionstr = root->get_crunes(m_filename);
+        return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
     }
 
     s32 filepath_t::compare(const filepath_t& right) const
     {
         npath::root_t* root = m_dirpath.m_device->m_root;
-        s32 const fe = root->compare_str(m_filename, right.m_filename);
+        s32 const      fe   = root->compare_str(m_filename, right.m_filename);
         if (fe != 0)
             return fe;
         s32 const ce = root->compare_str(m_extension, right.m_extension);

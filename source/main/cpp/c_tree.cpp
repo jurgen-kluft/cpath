@@ -12,9 +12,17 @@ namespace ncore
 {
     namespace npath
     {
-        inode_t tree_t::rotate_single(inode_t node, s32 dir)
+        enum etree_t
         {
-            inode_t const save = v_get_child(node, 1 - dir);
+            LEFT  = 0,
+            RIGHT = 1,
+            RED   = 0,
+            BLACK = 1,
+        };
+
+        node_t tree_t::rotate_single(node_t node, s32 dir)
+        {
+            node_t const save = v_get_child(node, 1 - dir);
             v_set_child(node, 1 - dir, v_get_child(save, dir));
             v_set_child(save, dir, node);
             v_set_red(node);
@@ -22,15 +30,15 @@ namespace ncore
             return save;
         }
 
-        inode_t tree_t::rotate_double(inode_t node, s32 dir)
+        node_t tree_t::rotate_double(node_t node, s32 dir)
         {
             v_set_child(node, 1 - dir, rotate_single(v_get_child(node, 1 - dir), 1 - dir));
             return rotate_single(node, dir);
         }
 
-        inode_t tree_t::rotate_single_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp)
+        node_t tree_t::rotate_single_track_parent(node_t node, s32 dir, node_t fn, node_t& fp)
         {
-            inode_t const save = rotate_single(node, dir);
+            node_t const save = rotate_single(node, dir);
 
             if (fn == node)
                 fp = save;
@@ -40,29 +48,29 @@ namespace ncore
             return save;
         }
 
-        inode_t tree_t::rotate_double_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp)
+        node_t tree_t::rotate_double_track_parent(node_t node, s32 dir, node_t fn, node_t& fp)
         {
-            inode_t const child = rotate_single_track_parent(v_get_child(node, 1 - dir), 1 - dir, fn, fp);
+            node_t const child = rotate_single_track_parent(v_get_child(node, 1 - dir), 1 - dir, fn, fp);
             v_set_child(node, 1 - dir, child);
 
             if (fn == child) // never triggered
                 fp = node;
 
-            inode_t const save = rotate_single_track_parent(node, dir, fn, fp);
+            node_t const save = rotate_single_track_parent(node, dir, fn, fp);
             if (fn == node)
                 fp = save;
             return save;
         }
 
-        bool tree_t::v_clear(inode_t& _root, inode_t& removed_node)
+        bool tree_t::v_clear(node_t& _root, node_t& removed_node)
         {
             removed_node = 0;
 
-            inode_t node = _root;
+            node_t node = _root;
             if (node == 0)
                 return true;
 
-            inode_t todelete = node;
+            node_t todelete = node;
             if (v_get_left(node) == 0)
             {
                 // tree->v_set_root(node->get_right(tree));
@@ -78,13 +86,13 @@ namespace ncore
                 // We have left and right branches
                 // Take right branch and place it
                 // somewhere down the left branch
-                inode_t branch = v_get_right(node);
+                node_t branch = v_get_right(node);
                 v_set_child(node, RIGHT, 0);
 
                 // Find a node in the left branch that does not
                 // have both a left and right branch and place
                 // our branch there.
-                inode_t iter = v_get_left(node);
+                node_t iter = v_get_left(node);
                 while (v_get_left(iter) != 0 && v_get_right(iter) != 0)
                 {
                     iter = v_get_left(iter);
@@ -107,9 +115,9 @@ namespace ncore
             return false;
         }
 
-        bool tree_t::v_clear(inode_t& _root)
+        bool tree_t::v_clear(node_t& _root)
         {
-            inode_t node   = 0;
+            node_t node   = 0;
             bool    result = v_clear(_root, node);
             if (node != 0)
             {
@@ -119,7 +127,7 @@ namespace ncore
         }
 
         // validate the tree (return violation description in 'result'), also returns black height
-        s32 tree_t::v_validate(inode_t _root, const char*& result, item_cmp cmp, void const* user_data) const
+        s32 tree_t::v_validate(node_t _root, const char*& result, item_cmp cmp, void const* user_data) const
         {
             if (_root == 0)
             {
@@ -127,9 +135,9 @@ namespace ncore
             }
             else
             {
-                inode_t const root = _root;
-                inode_t const ln   = v_get_left(root);
-                inode_t const rn   = v_get_right(root);
+                node_t const root = _root;
+                node_t const ln   = v_get_left(root);
+                node_t const rn   = v_get_right(root);
 
                 // Consecutive red links
                 if (v_is_red(root))
@@ -191,9 +199,9 @@ namespace ncore
             m_free_index = 1;
         }
 
-        inode_t tree_t::find(inode_t root, u32 const find, item_cmp cmp, void const* user_data)
+        node_t tree_t::find(node_t root, u32 const find, item_cmp cmp, void const* user_data)
         {
-            inode_t node = root;
+            node_t node = root;
             while (node != 0)
             {
                 u32 const item = v_get_item(node);
@@ -205,10 +213,10 @@ namespace ncore
             return 0;
         }
 
-        bool tree_t::insert(inode_t& _root, u32 const _insert, item_cmp cmp, void const* user_data)
+        bool tree_t::insert(node_t& _root, u32 const _insert, item_cmp cmp, void const* user_data)
         {
             bool    inserted = false;
-            inode_t root     = _root;
+            node_t root     = _root;
             if (root == 0)
             {
                 // We have an empty tree; attach the
@@ -218,9 +226,9 @@ namespace ncore
             }
             else
             {
-                inode_t head = v_get_temp(); // False tree root
-                inode_t g, t;                // Grandparent & parent
-                inode_t p, n;                // Iterator & parent
+                node_t head = v_get_temp(); // False tree root
+                node_t g, t;                // Grandparent & parent
+                node_t p, n;                // Iterator & parent
                 s32     dir = 0, last = 0;
 
                 // Set up our helpers
@@ -275,7 +283,7 @@ namespace ncore
 
                     g = p;
                     p = n;
-                    n = v_get_child(n, (echild_t)dir);
+                    n = v_get_child(n, dir);
                 }
 
                 // Update the root (it may be different)
@@ -290,36 +298,36 @@ namespace ncore
             return inserted;
         }
 
-        bool tree_t::remove(inode_t& _root, u32 _remove, item_cmp cmp, void const* user_data)
+        bool tree_t::remove(node_t& _root, u32 _remove, item_cmp cmp, void const* user_data)
         {
-            inode_t root = _root;
+            node_t root = _root;
             if (root == 0)
                 return false;
 
-            inode_t head = v_get_temp(); // False tree root
-            inode_t fn   = 0;            // Found node
-            inode_t fp   = 0;            // Found node parent
+            node_t head = v_get_temp(); // False tree root
+            node_t fn   = 0;            // Found node
+            node_t fp   = 0;            // Found node parent
             s32     dir  = 1;
 
             // Set up our helpers
-            inode_t g = 0;
-            inode_t p = 0;
+            node_t g = 0;
+            node_t p = 0;
 
-            inode_t n = head;
+            node_t n = head;
             v_set_black(n); // Color it black
             v_set_right(n, root);
             v_set_left(n, 0);
 
             // Search and push a red node down
             // to fix red violations as we go
-            while (v_get_child(n, (echild_t)dir) != 0)
+            while (v_get_child(n, dir) != 0)
             {
                 const s32 last = dir;
 
                 // Move the helpers down
                 g = p;
                 p = n;
-                n = v_get_child(n, (echild_t)dir);
+                n = v_get_child(n, dir);
                 // dir = tree->v_compare_insert(key, n);
                 dir = cmp(_remove, v_get_item(n), user_data);
 
@@ -333,22 +341,22 @@ namespace ncore
                 dir = ((dir + 1) >> 1);
 
                 /* Push the red node down with rotations and color flips */
-                if (!v_is_red(n) && !v_is_red(v_get_child(n, (echild_t)dir)))
+                if (!v_is_red(n) && !v_is_red(v_get_child(n, dir)))
                 {
-                    if (v_is_red(v_get_child(n, (echild_t)(1 - dir))))
+                    if (v_is_red(v_get_child(n, (1 - dir))))
                     {
-                        inode_t r = rotate_single_track_parent(n, dir, fn, fp);
-                        v_set_child(p, (echild_t)last, r);
+                        node_t r = rotate_single_track_parent(n, dir, fn, fp);
+                        v_set_child(p, last, r);
                         if (fn == r) // never triggered
                             fp = p;
                         p = r;
                     }
-                    else if (!v_is_red(v_get_child(n, (echild_t)(1 - dir))))
+                    else if (!v_is_red(v_get_child(n, (1 - dir))))
                     {
-                        inode_t s = v_get_child(p, (echild_t)(1 - last));
+                        node_t s = v_get_child(p, (1 - last));
                         if (s != 0)
                         {
-                            if (!v_is_red(v_get_child(s, (echild_t)(1 - last))) && !v_is_red(v_get_child(s, (echild_t)last)))
+                            if (!v_is_red(v_get_child(s, (1 - last))) && !v_is_red(v_get_child(s, last)))
                             {
                                 // Color flip
                                 v_set_black(p);
@@ -358,24 +366,24 @@ namespace ncore
                             else
                             {
                                 const s32 dir2 = v_get_right(g) == p ? 1 : 0;
-                                if (v_is_red(v_get_child(s, (echild_t)last)))
+                                if (v_is_red(v_get_child(s, last)))
                                 {
-                                    inode_t r = rotate_double_track_parent(p, last, fn, fp);
-                                    v_set_child(g, (echild_t)dir2, r);
+                                    node_t r = rotate_double_track_parent(p, last, fn, fp);
+                                    v_set_child(g, dir2, r);
                                     if (fn == r) // never triggered
                                         fp = g;
                                 }
-                                else if (v_is_red(v_get_child(s, (echild_t)(1 - last))))
+                                else if (v_is_red(v_get_child(s, (1 - last))))
                                 {
-                                    inode_t r = rotate_single_track_parent(p, last, fn, fp);
-                                    v_set_child(g, (echild_t)dir2, r);
+                                    node_t r = rotate_single_track_parent(p, last, fn, fp);
+                                    v_set_child(g, dir2, r);
                                     if (fn == r) // never triggered
                                         fp = g;
                                 }
 
                                 // Ensure correct coloring
                                 v_set_red(n);
-                                v_set_red(v_get_child(g, (echild_t)dir2));
+                                v_set_red(v_get_child(g, dir2));
 
                                 v_set_black(v_get_left(v_get_child(g, dir2)));
                                 v_set_black(v_get_right(v_get_child(g, dir2)));
@@ -394,7 +402,7 @@ namespace ncore
                 ASSERT(v_get_right(fp) == fn || v_get_left(fp) == fn);
                 ASSERT(v_get_right(p) == n || v_get_left(p) == n);
 
-                inode_t child1 = v_get_child(n, v_get_left(n) == 0 ? RIGHT : LEFT);
+                node_t child1 = v_get_child(n, v_get_left(n) == 0 ? RIGHT : LEFT);
                 v_set_child(p, v_get_right(p) == n ? RIGHT : LEFT, child1);
 
                 if (fn != n)
@@ -423,19 +431,19 @@ namespace ncore
             return true;
         }
 
-        u32 tree_t::get_item(inode_t node) const { return v_get_item(node); }
+        u32 tree_t::get_item(node_t node) const { return v_get_item(node); }
 
-        u32  tree_t::v_get_item(inode_t node) const { return *(u32*)(m_item_array.m_ptr + node * sizeof(u32)); }
-        void tree_t::v_set_item(inode_t node, u32 item) { *(u32*)(m_item_array.m_ptr + node * sizeof(u32)) = item; }
+        u32  tree_t::v_get_item(node_t node) const { return *(u32*)(m_item_array.m_ptr + node * sizeof(u32)); }
+        void tree_t::v_set_item(node_t node, u32 item) { *(u32*)(m_item_array.m_ptr + node * sizeof(u32)) = item; }
 
-        void     tree_t::v_set_color(inode_t node, ecolor_t color) { m_color_array.m_ptr[node >> 3] = (m_color_array.m_ptr[node >> 3] & ~(1 << (node & 0x07))) | ((u8)color << (node & 0x07)); }
-        ecolor_t tree_t::v_get_color(inode_t node) const { return v_is_red(node) ? RED : BLACK; }
-        bool     tree_t::v_is_red(inode_t node) const { return node != 0 && (m_color_array.m_ptr[node >> 3] & (1 << (node & 0x07))) == 0; }
-        bool     tree_t::v_is_black(inode_t node) const { return node != 0 && ((m_color_array.m_ptr[node >> 3] & (1 << (node & 0x07))) != 0); }
-        void     tree_t::v_set_red(inode_t node) { m_color_array.m_ptr[node >> 3] &= ~(1 << (node & 0x07)); }
-        void     tree_t::v_set_black(inode_t node) { m_color_array.m_ptr[node >> 3] |= (1 << (node & 0x07)); }
+        void tree_t::v_set_color(node_t node, s8 color) { m_color_array.m_ptr[node >> 3] = (m_color_array.m_ptr[node >> 3] & ~(1 << (node & 0x07))) | ((u8)color << (node & 0x07)); }
+        s8   tree_t::v_get_color(node_t node) const { return v_is_red(node) ? RED : BLACK; }
+        bool tree_t::v_is_red(node_t node) const { return node != 0 && (m_color_array.m_ptr[node >> 3] & (1 << (node & 0x07))) == 0; }
+        bool tree_t::v_is_black(node_t node) const { return node != 0 && ((m_color_array.m_ptr[node >> 3] & (1 << (node & 0x07))) != 0); }
+        void tree_t::v_set_red(node_t node) { m_color_array.m_ptr[node >> 3] &= ~(1 << (node & 0x07)); }
+        void tree_t::v_set_black(node_t node) { m_color_array.m_ptr[node >> 3] |= (1 << (node & 0x07)); }
 
-        inode_t tree_t::v_get_child(inode_t node, s8 ne) const
+        node_t tree_t::v_get_child(node_t node, s8 ne) const
         {
             u32 const index = node;
             switch (ne)
@@ -446,7 +454,7 @@ namespace ncore
             return 0;
         }
 
-        void tree_t::v_set_child(inode_t node, s8 ne, inode_t set)
+        void tree_t::v_set_child(node_t node, s8 ne, node_t set)
         {
             u32 const index = node;
             switch (ne)
@@ -456,28 +464,28 @@ namespace ncore
             }
         }
 
-        inode_t tree_t::v_get_left(inode_t node) const
+        node_t tree_t::v_get_left(node_t node) const
         {
             if (node == 0)
                 return 0;
-            return *(inode_t const*)(m_item_array.m_ptr + node * sizeof(u32));
+            return *(node_t const*)(m_item_array.m_ptr + node * sizeof(u32));
         }
 
-        void tree_t::v_set_left(inode_t node, inode_t child)
+        void tree_t::v_set_left(node_t node, node_t child)
         {
             if (node == 0)
                 return;
             *((u32*)m_node_left_array.m_ptr + node) = child;
         }
 
-        inode_t tree_t::v_get_right(inode_t node) const
+        node_t tree_t::v_get_right(node_t node) const
         {
             if (node == 0)
                 return 0;
-            return *(inode_t const*)(m_item_array.m_ptr + node * sizeof(u32));
+            return *(node_t const*)(m_item_array.m_ptr + node * sizeof(u32));
         }
 
-        void tree_t::v_set_right(inode_t node, inode_t child)
+        void tree_t::v_set_right(node_t node, node_t child)
         {
             if (node == 0)
                 return;
@@ -485,9 +493,9 @@ namespace ncore
         }
 
         // Optimization, we can also reserve index 1 for the temporary node
-        inode_t tree_t::v_get_temp() { return v_new_node(0); }
+        node_t tree_t::v_get_temp() { return v_new_node(0); }
 
-        inode_t tree_t::v_new_node(u32 _item)
+        node_t tree_t::v_new_node(u32 _item)
         {
             u32 index;
             if (m_free_head > 0)
@@ -516,7 +524,7 @@ namespace ncore
             return index;
         }
 
-        void tree_t::v_del_node(inode_t node)
+        void tree_t::v_del_node(node_t node)
         {
             *((u32*)m_item_array.m_ptr + node) = m_free_head;
             m_free_head                        = node;

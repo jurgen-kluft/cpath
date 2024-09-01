@@ -14,24 +14,7 @@ namespace ncore
     namespace npath
     {
         // Note: Index 0 is used as a null index
-        typedef u32 inode_t;
-
-        namespace ntree2
-        {
-            struct node_t;
-        }
-
-        enum echild_t
-        {
-            LEFT  = 0,
-            RIGHT = 1,
-        };
-
-        enum ecolor_t
-        {
-            RED   = 0,
-            BLACK = 1,
-        };
+        typedef u32 node_t;
 
         struct tree_t
         {
@@ -41,11 +24,11 @@ namespace ncore
 
             typedef s8 (*item_cmp)(u32 const find_item, u32 const node_item, void const* user_data);
 
-            inode_t find(inode_t root, u32 const find, item_cmp cmp, void const* user_data);
-            bool    insert(inode_t& root, u32 const insert, item_cmp cmp, void const* user_data);
-            bool    remove(inode_t& root, u32 const remove, item_cmp cmp, void const* user_data);
+            node_t find(node_t root, u32 const find, item_cmp cmp, void const* user_data);
+            bool    insert(node_t& root, u32 const insert, item_cmp cmp, void const* user_data);
+            bool    remove(node_t& root, u32 const remove, item_cmp cmp, void const* user_data);
 
-            u32 get_item(inode_t node) const;
+            u32 get_item(node_t node) const;
 
         protected:
             virtual_buffer_t m_item_array;       // Virtual memory array of u32[]
@@ -55,31 +38,31 @@ namespace ncore
             u32              m_free_head;        // Head of the free list
             u32              m_free_index;       // Index of the free list
 
-            inode_t rotate_single(inode_t node, s32 dir);
-            inode_t rotate_double(inode_t node, s32 dir);
-            inode_t rotate_single_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp);
-            inode_t rotate_double_track_parent(inode_t node, s32 dir, inode_t fn, inode_t& fp);
+            node_t rotate_single(node_t node, s32 dir);
+            node_t rotate_double(node_t node, s32 dir);
+            node_t rotate_single_track_parent(node_t node, s32 dir, node_t fn, node_t& fp);
+            node_t rotate_double_track_parent(node_t node, s32 dir, node_t fn, node_t& fp);
 
-            bool     v_clear(inode_t& _root, inode_t& removed_node);
-            bool     v_clear(inode_t& _root);
-            s32      v_validate(inode_t root, const char*& result, item_cmp cmp, void const* user_data) const;
-            u32      v_get_item(inode_t node) const;
-            void     v_set_item(inode_t node, u32 item);
-            inode_t  v_get_child(inode_t node, s8 ne) const;
-            void     v_set_child(inode_t node, s8 ne, inode_t set);
-            inode_t  v_get_left(inode_t node) const;
-            void     v_set_left(inode_t node, inode_t child);
-            inode_t  v_get_right(inode_t node) const;
-            void     v_set_right(inode_t node, inode_t child);
-            void     v_set_color(inode_t node, ecolor_t color);
-            ecolor_t v_get_color(inode_t node) const;
-            bool     v_is_red(inode_t node) const;
-            bool     v_is_black(inode_t node) const;
-            void     v_set_black(inode_t node);
-            void     v_set_red(inode_t node);
-            inode_t  v_get_temp();
-            inode_t  v_new_node(u32 _item);
-            void     v_del_node(inode_t node);
+            bool    v_clear(node_t& _root, node_t& removed_node);
+            bool    v_clear(node_t& _root);
+            s32     v_validate(node_t root, const char*& result, item_cmp cmp, void const* user_data) const;
+            u32     v_get_item(node_t node) const;
+            void    v_set_item(node_t node, u32 item);
+            node_t v_get_child(node_t node, s8 ne) const;
+            void    v_set_child(node_t node, s8 ne, node_t set);
+            node_t v_get_left(node_t node) const;
+            void    v_set_left(node_t node, node_t child);
+            node_t v_get_right(node_t node) const;
+            void    v_set_right(node_t node, node_t child);
+            void    v_set_color(node_t node, s8 color);
+            s8      v_get_color(node_t node) const;
+            bool    v_is_red(node_t node) const;
+            bool    v_is_black(node_t node) const;
+            void    v_set_black(node_t node);
+            void    v_set_red(node_t node);
+            node_t v_get_temp();
+            node_t v_new_node(u32 _item);
+            void    v_del_node(node_t node);
         };
     } // namespace npath
 } // namespace ncore

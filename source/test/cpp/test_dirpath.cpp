@@ -61,9 +61,14 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
 			dirpath_t dirpath;
             reg.register_fulldirpath(asciidirstr, dirpath);
-			nrunes::runestr_t<ascii::rune, 128> dirstr;
-			dirpath.to_string(dirstr);
-			CHECK_EQUAL(0, compare(dirstr, asciidirstr));
+
+            utf32::rune dst_runes[256];
+            dst_runes[0] = {0};
+            dst_runes[1] = {0};
+            runes_t dst(dst_runes, 0, 0, 256);
+
+			dirpath.to_string(dst);
+			CHECK_EQUAL(0, nrunes::compare(dst, asciidirstr));
 
             reg.exit(Allocator);
 		}
