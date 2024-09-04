@@ -16,13 +16,16 @@ namespace ncore
         class parser_t
         {
         public:
+            enum { WINDOWS=0, MACOS=1, LINUX=2 };
+
             crunes_t m_device;
             crunes_t m_path;
             crunes_t m_filename;
             crunes_t m_extension;
             crunes_t m_first_folder;
 
-            void parse(const crunes_t& fullpath);
+            bool parse(const crunes_t& fullpath);
+            bool parse(const crunes_t& fullpath, s8 os);
 
             bool has_device() const;
             bool has_path() const;
@@ -33,7 +36,7 @@ namespace ncore
             crunes_t path() const;
 
             crunes_t iterate_folder() const;
-            bool     next_folder(crunes_t& folder) const;
+            bool     next_folder(crunes_t& folder, char slash = '\\') const;
         };
     } // namespace npath
 } // namespace ncore
