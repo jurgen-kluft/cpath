@@ -10,7 +10,7 @@
 #include "cpath/c_filepath.h"
 #include "cpath/private/c_root.h"
 #include "cpath/private/c_strings.h"
-#include "cpath/private/c_pathparser.h"
+#include "cpath/private/c_parser.h"
 
 namespace ncore
 {
@@ -40,41 +40,70 @@ namespace ncore
             sNilDevice->m_userdata2  = 0;
 
             m_strings = (strings_t*)m_allocator->allocate(sizeof(strings_t), sizeof(void*));
-            m_strings->init(m_allocator, max_items);
-            m_folders.init(m_allocator);
+            m_strings->init(max_items);
+
+            m_nodes = (tree_t*)m_allocator->allocate(sizeof(tree_t), sizeof(void*));
+            m_nodes->init();
+
+            m_folders.init();
         }
 
         void root_t::exit(alloc_t* allocator)
         {
+            sNilDevice = nullptr;
             for (s32 i = 0; i < m_num_devices; ++i)
             {
-                release_pathstr(m_arr_devices[i]->m_alias);
-                release_pathstr(m_arr_devices[i]->m_deviceName);
-                release_pathdevice(m_arr_devices[i]->m_devicePath);
-                m_arr_devices[i]->m_root       = nullptr;
-                m_arr_devices[i]->m_alias      = 0;
-                m_arr_devices[i]->m_deviceName = 0;
-                m_arr_devices[i]->m_devicePath = 0;
-                m_arr_devices[i]->m_redirector = 0;
-                m_arr_devices[i]->m_userdata1  = 0;
-                m_arr_devices[i]->m_userdata2  = 0;
+                allocator->deallocate(m_arr_devices[i]);
             }
+            allocator->deallocate(m_arr_devices);
             m_num_devices = 0;
+
+            m_folders.exit();
+            m_nodes->exit();
+            m_strings->exit();
+
+            allocator->deallocate(m_nodes);
+            allocator->deallocate(m_strings);
         }
 
-        string_t root_t::findOrInsert(crunes_t const& namestr)
+        string_t root_t::find_string(const crunes_t& namestr) const
         {
             string_t name = 0;
 
             return name;
         }
 
-        crunes_t root_t::get_crunes(string_t str) const
+        string_t root_t::find_or_insert_string(crunes_t const& namestr)
         {
-            crunes_t r;
-            m_strings->to_string(str, r);
-            return r;
+            string_t name = 0;
+
+            return name;
         }
+
+        crunes_t root_t::get_crunes(string_t _str) const
+        {
+            utf8::pcrune str;
+            u32          len;
+            m_strings->view_string(_str, str, len);
+            return crunes_t(str, 0, len, len);
+        }
+
+        void root_t::to_string(string_t str, runes_t& out_str) const
+        {
+            utf8::pcrune r;
+            u32          len;
+            m_strings->view_string(str, r, len);
+            crunes_t cr(r, 0, len, len);
+            nrunes::concatenate(out_str, cr);
+        }
+
+        s32 root_t::to_strlen(string_t str) const
+        {
+            s32 len = m_strings->get_len(str);
+            return len;
+        }
+
+        s32 root_t::compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
 
         void root_t::register_name(crunes_t const& namestr, string_t& outname)
         {
@@ -84,13 +113,13 @@ namespace ncore
 
         void root_t::register_fulldirpath(crunes_t const& fulldirpath, string_t& outdevicename, node_t& outnode)
         {
-            pathparser_t parser;
+            npath::parser_t parser;
             parser.parse(fulldirpath);
 
             outdevicename = 0;
             if (parser.has_device())
             {
-                outdevicename = this->findOrInsert(parser.m_device);
+                outdevicename = this->find_or_insert_string(parser.m_device);
             }
 
             outnode = 0;
@@ -100,8 +129,8 @@ namespace ncore
                 node_t   parent_node = 0;
                 do
                 {
-                    string_t folder_pathstr = this->findOrInsert(folder);
-                    node_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
+                    string_t folder_pathstr = this->find_or_insert_string(folder);
+                    node_t   folder_node    = this->find_or_insert_path(parent_node, folder_pathstr);
                     parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
@@ -110,7 +139,7 @@ namespace ncore
 
         void root_t::register_dirpath(crunes_t const& dirpath, node_t& outnode)
         {
-            pathparser_t parser;
+            npath::parser_t parser;
             parser.parse(dirpath);
 
             outnode = 0;
@@ -120,8 +149,8 @@ namespace ncore
                 node_t   parent_node = 0;
                 do
                 {
-                    string_t folder_pathstr = this->findOrInsert(folder);
-                    node_t   folder_node    = this->findOrInsert(parent_node, folder_pathstr);
+                    string_t folder_pathstr = this->find_or_insert_string(folder);
+                    node_t   folder_node    = this->find_or_insert_path(parent_node, folder_pathstr);
                     parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
@@ -133,15 +162,15 @@ namespace ncore
             crunes_t filename_str   = namestr;
             filename_str            = nrunes::findLastSelectUntil(filename_str, '.');
             crunes_t extension_str  = nrunes::selectAfterExclude(namestr, filename_str);
-            string_t filename_name  = this->findOrInsert(filename_str);
-            string_t extension_name = this->findOrInsert(extension_str);
+            string_t filename_name  = this->find_or_insert_string(filename_str);
+            string_t extension_name = this->find_or_insert_string(extension_str);
             out_filename            = filename_name;
             out_extension           = extension_name;
         }
 
         void root_t::register_fullfilepath(crunes_t const& fullfilepath, string_t& out_device, node_t& out_path, string_t& out_filename, string_t& out_extension)
         {
-            pathparser_t parser;
+            npath::parser_t parser;
             parser.parse(fullfilepath);
 
             out_device = 0;
@@ -419,15 +448,18 @@ namespace ncore
 
             // should be the root device (has filedevice), so first emit the device name.
             // this device should not have any device path.
-            crunes_t device_str;
-            m_root->m_strings->to_string(device->m_deviceName, device_str);
+            utf8::pcrune device_str;
+            u32          device_strlen;
+            m_root->m_strings->view_string(device->m_deviceName, device_str, device_strlen);
+            crunes_t device_str_crunes(device_str, 0, device_strlen, device_strlen);
             // TODO append this device's path to the string
 
             // the rest of the devices are aliases and should be appending their paths
             while (--i >= 0)
             {
                 device = devices[i];
-                m_root->m_strings->to_string(device->m_deviceName, device_str);
+                m_root->m_strings->view_string(device->m_deviceName, device_str, device_strlen);
+                device_str_crunes = crunes_t(device_str, 0, device_strlen, device_strlen);
                 // TODO append this device's path to the string
             }
         }

@@ -6,29 +6,32 @@
 
 namespace ncore
 {
-    void* freelist_alloc(u8* memory, u32 _item_size, u32& _free_head, u32& _free_index)
+    namespace npath
     {
-        if (_free_head > 0)
+        // Note: Index 0 is used as a null index
+        void* freelist_alloc(u8* memory, u32 _item_size, u32& _free_head, u32& _free_index)
         {
-            u32 const index = _free_head;
-            _free_head      = *((u32*)(memory + index * _item_size));
+            if (_free_head > 0)
+            {
+                u32 const index = _free_head;
+                _free_head      = *((u32*)(memory + index * _item_size));
+                return memory + index * _item_size;
+            }
+            u32 const index = _free_index++;
             return memory + index * _item_size;
         }
-        u32 const index = _free_index++;
-        return memory + index * _item_size;
-    }
 
-    void freelist_free(void* item, u8* memory, u32 _item_size, u32& _free_head)
-    {
-        u32 const index = freelist_idx_of(item, memory, _item_size);
-        *((u32*)item)   = _free_head;
-        _free_head      = index;
-    }
+        void freelist_free(void* item, u8* memory, u32 _item_size, u32& _free_head)
+        {
+            u32 const index = freelist_idx_of(item, memory, _item_size);
+            *((u32*)item)   = _free_head;
+            _free_head      = index;
+        }
 
-    void freelist_reset(u32& _free_head, u32& _free_index)
-    {
-        _free_head  = 0;
-        _free_index = 1;
-    }
-
-}; // namespace ncore
+        void freelist_reset(u32& _free_head, u32& _free_index)
+        {
+            _free_head  = 0;
+            _free_index = 1;
+        }
+    } // namespace npath
+} // namespace ncore

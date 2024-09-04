@@ -5,6 +5,7 @@
 
 #include "cpath/c_filepath.h"
 #include "cpath/c_dirpath.h"
+#include "cpath/private/c_parser.h"
 #include "cpath/private/c_root.h"
 
 namespace ncore
@@ -72,35 +73,7 @@ namespace ncore
         // TODO
     }
 
-    void dirpath_t::getSubDir(const dirpath_t& parentpath, const dirpath_t& path, dirpath_t& out_subpath)
-    {
-        //   parent  = [a b c d e f]
-        //   path    = [a b c d e f] g h i j
-        //   overlap = [a b c d e f]
-        //   subpath = g h i j
-
-        // TODO
-    }
-
-    dirpath_t dirpath_t::device() const { return dirpath_t(m_device); }
-
-    dirpath_t dirpath_t::root() const
-    {
-        dirpath_t      dp(m_device);
-        npath::root_t* root = m_device->m_root;
-        npath::node_t  left = 0;
-        dp.m_path           = m_device->m_root->attach_pathnode(left);
-        return dp;
-    }
-
-    dirpath_t dirpath_t::parent() const
-    {
-        npath::root_t* root = m_device->m_root;
-        dirpath_t      dp(m_device);
-        dp.m_path = root->get_parent_path(m_path);
-        dp.m_path = m_device->m_root->attach_pathstr(dp.m_path);
-        return dp;
-    }
+    npath::string_t dirpath_t::devname() const { return m_device->m_deviceName; }
 
     npath::string_t dirpath_t::basename() const
     {
@@ -123,9 +96,54 @@ namespace ncore
         return folder->m_name;
     }
 
-    npath::string_t dirpath_t::devname() const { return m_device->m_deviceName; }
+    dirpath_t dirpath_t::device() const { return dirpath_t(m_device); }
 
-    s32 dirpath_t::getLevels() const
+    dirpath_t dirpath_t::root() const
+    {
+        dirpath_t      dp(m_device);
+        npath::root_t* root = m_device->m_root;
+        npath::node_t  left = 0;
+        dp.m_path           = m_device->m_root->attach_pathnode(left);
+        return dp;
+    }
+
+    dirpath_t dirpath_t::parent() const
+    {
+        npath::root_t* root = m_device->m_root;
+        dirpath_t      dp(m_device);
+        dp.m_path = root->get_parent_path(m_path);
+        dp.m_path = m_device->m_root->attach_pathstr(dp.m_path);
+        return dp;
+    }
+
+    filepath_t dirpath_t::file(crunes_t const& filepath)
+    {
+        npath::root_t* root = m_device->m_root;
+
+        npath::parser_t parser;
+        parser.parse(filepath);
+
+        if (parser.has_filename() && parser.has_extension())
+        {
+            npath::string_t filename  = root->find_or_insert_string(parser.m_filename);
+            npath::string_t extension = root->find_or_insert_string(parser.m_extension);
+            return filepath_t(m_device, m_path, filename, extension);
+        }
+        else if (parser.has_filename())
+        {
+            npath::string_t filename = root->find_or_insert_string(parser.m_filename);
+            return filepath_t(m_device, m_path, filename, 0);
+        }
+        else if (parser.has_extension())
+        {
+            npath::string_t extension = root->find_or_insert_string(parser.m_extension);
+            return filepath_t(m_device, m_path, 0, extension);
+        }
+
+        return filepath_t(m_device, m_path, 0, 0);
+    }
+
+    s32 dirpath_t::depth() const
     {
         if (m_path == 0)
             return 0;
@@ -145,8 +163,8 @@ namespace ncore
     void dirpath_t::down(crunes_t const& folder)
     {
         npath::root_t*  root       = m_device->m_root;
-        npath::string_t folder_str = root->findOrInsert(folder);
-        m_path                     = root->findOrInsert(m_path, folder_str);
+        npath::string_t folder_str = root->find_or_insert_string(folder);
+        m_path                     = root->find_or_insert_path(m_path, folder_str);
     }
 
     void dirpath_t::up()
@@ -191,13 +209,6 @@ namespace ncore
         m_device = root->attach_pathdevice(other.m_device);
         m_path   = root->attach_pathnode(other.m_path);
         return *this;
-    }
-
-    dirpath_t operator+(const dirpath_t& left, const dirpath_t& right)
-    {
-        dirpath_t dp(left);
-
-        return dp;
     }
 
 }; // namespace ncore

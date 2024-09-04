@@ -6,30 +6,33 @@
 #endif
 
 #include "ccore/c_debug.h"
-#include "cbase/c_allocator.h"
 #include "cbase/c_runes.h"
 
-#include "cpath/private/c_strings.h"
 #include "cpath/private/c_freelist.h"
-#include "cpath/private/c_tree.h"
-#include "cpath/private/c_root.h"
 
 namespace ncore
 {
+    class alloc_t;
     class filepath_t;
     class dirpath_t;
 
     namespace npath
     {
         struct device_t;
+        struct root_t;
+
+        struct strings_t;
+        typedef u32 string_t;
+        struct tree_t;
+        typedef u32 node_t;
 
         typedef u32 ifolder_t;
         struct folder_t
         {
             ifolder_t m_parent;  // folder parent (index into m_folder_array)
-            string_t  m_name;    // folder name (index into m_strings)
-            node_t    m_files;   // Tree of files (tree node index)
-            node_t    m_folders; // Tree of folders (tree node index)
+            string_t  m_name;    // folder name
+            node_t    m_files;   // Tree of files (tree root node)
+            node_t    m_folders; // Tree of folders (tree root node)
             void      reset()
             {
                 m_parent  = 0;
@@ -91,18 +94,18 @@ namespace ncore
             s16      release_pathdevice(s16 idevice);
             s16      release_pathdevice(device_t* device);
 
-            node_t   get_parent_path(node_t path);
-            string_t find_string(crunes_t const& str);
-            string_t findOrInsert(crunes_t const& str);
+            string_t find_string(crunes_t const& str) const;
+            string_t find_or_insert_string(crunes_t const& str);
             crunes_t get_crunes(string_t str) const;
-            bool     remove(string_t item);
+            void     to_string(string_t str, runes_t& out_str) const;
+            s32      to_strlen(string_t str) const;
+            s32      compare_str(string_t left, string_t right) const;
+            s32      compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
 
-            node_t findOrInsert(node_t parent, string_t str);
-            bool   remove(folder_t* item);
-            void   to_string(string_t str, runes_t& out_str) const;
-            s32    to_strlen(node_t str) const;
-            s32    compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
-            s32    compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
+            node_t get_parent_path(node_t path);
+            node_t find_or_insert_path(node_t parent, string_t str);
+            s32    get_path_strlen(node_t path) const;
+            bool   remove_path(node_t item);
 
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
@@ -149,12 +152,10 @@ namespace ncore
 
     } // namespace npath
 
-    // The whole path table is a red-black tree.
-    // Every 'folder' has siblings (files and folders), each 'folder' sibling again
-    // has siblings (files and folders) and so on. The root folder is the only one
-    // that has no siblings. The root folder is the only one that has a null parent.
-    // This means using a red-black tree we can have trees within trees within trees.
-    //
+    // The whole path table is a hierarchical red-black tree.
+    // Every 'folder' holds 2 tree roots (files and folders), each 'folder' again
+    // has 2 trees (files and folders) and so on. The root folder is the only one
+    // that has a 0/null parent.
 
 } // namespace ncore
 

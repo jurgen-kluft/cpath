@@ -173,7 +173,7 @@ namespace ncore
             return 0;
         }
 
-        void tree_t::init(alloc_t* allocator, u32 init_num_items, u32 max_num_items)
+        void tree_t::init(u32 init_num_items, u32 max_num_items)
         {
             m_item_array.init(init_num_items, max_num_items, sizeof(u32));
             m_node_left_array.init(init_num_items, max_num_items, sizeof(u32));
@@ -183,7 +183,7 @@ namespace ncore
             m_free_index = 1;
         }
 
-        void tree_t::exit(alloc_t* allocator)
+        void tree_t::exit()
         {
             m_item_array.exit();
             m_node_left_array.exit();

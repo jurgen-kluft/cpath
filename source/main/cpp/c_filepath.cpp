@@ -3,7 +3,7 @@
 #include "cbase/c_runes.h"
 
 #include "cpath/private/c_root.h"
-#include "cpath/private/c_pathparser.h"
+#include "cpath/private/c_parser.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/c_filepath.h"
 

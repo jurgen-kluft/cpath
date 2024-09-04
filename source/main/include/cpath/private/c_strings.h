@@ -9,7 +9,7 @@
 #include "cbase/c_runes.h"
 #include "cpath/private/c_freelist.h"
 #include "cpath/private/c_tree.h"
-#include "cpath/private/c_virtual_buffer.h"
+#include "cpath/private/c_memory.h"
 
 namespace ncore
 {
@@ -23,20 +23,20 @@ namespace ncore
         {
             strings_t();
 
-            void init(alloc_t* allocator, u32 max_items = 16 * 1024 * 1024);
-            void exit(alloc_t* allocator);
+            void init(u32 max_items = 16 * 1024 * 1024);
+            void exit();
 
             string_t attach(string_t node);
             string_t detach(string_t node);
 
-            string_t findOrInsert(utf8::pcrune str, u32 byte_len);
-            string_t findOrInsert(utf16::pcrune str, u32 byte_len);
-            string_t findOrInsert(utf32::pcrune str, u32 byte_len);
-            string_t findOrInsert(ucs2::pcrune str, u32 byte_len);
+            string_t find_or_insert(utf8::pcrune str, u32 byte_len);
+            string_t find_or_insert(utf16::pcrune str, u32 byte_len);
+            string_t find_or_insert(utf32::pcrune str, u32 byte_len);
+            string_t find_or_insert(ucs2::pcrune str, u32 byte_len);
 
             u32  get_len(string_t index) const;
             s8   compare(string_t left, string_t right) const;
-            void to_string(string_t str, crunes_t& out_str) const;
+            void view_string(string_t str, utf8::pcrune& out_str, u32& out_len) const;
 
         private:
             struct obj_t
@@ -47,11 +47,11 @@ namespace ncore
             };
             string_t to_idx(obj_t const* item) const { return m_str_array.idx_of(item); }
             obj_t*   to_ptr(string_t index) const { return m_str_array.ptr_of(index); }
-            s8       compare(obj_t const* left, obj_t const* right) const;
 
+            s8        compare_str(obj_t const* strA, obj_t const* strB) const;
             static s8 compare_str(u32 const find_item, u32 const node_item, void const* user_data);
 
-            virtual_buffer_t  m_data_buffer; // Virtual memory for holding utf8 strings
+            memory_t          m_data_buffer; // Virtual memory for holding utf8 strings
             u8*               m_data_ptr;    // Allocation pointer in the virtual memory
             freelist_t<obj_t> m_str_array;   // Virtual memory array of string_t[]
             tree_t            m_str_tree;    // Red-black tree of string_t[]

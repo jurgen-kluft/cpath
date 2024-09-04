@@ -13,13 +13,9 @@ namespace ncore
     class filepath_t;
 
     //==============================================================================
-    // dirpath_t:
-    //		- Relative:		"FolderA\FolderB\"
-    //		- Absolute:		"Device:\FolderA\FolderB\"
-    //
-    // Root                     = "Device:\"
-    // Parent                   = "Device:\FolderA\"
-    // Dir                      = "\FolderA\FolderB\"
+    // dirpath_t
+    // A path is never relative, it is always absolute. There is a way to make a path
+    // appear relative to another path, but the path itself is always absolute.
     //==============================================================================
 
     namespace npath
@@ -34,6 +30,7 @@ namespace ncore
     {
     protected:
         npath::device_t* m_device; // "E:\" (the file device)
+        npath::node_t    m_base;   // "" or "documents\old\inventory\books\"
         npath::node_t    m_path;   // "documents\old\inventory\books\sci-fi\"
 
         friend class fileinfo_t;
@@ -49,6 +46,8 @@ namespace ncore
         dirpath_t(npath::device_t* device, npath::node_t path);
         ~dirpath_t();
 
+        dirpath_t& operator=(dirpath_t const& other);
+
         void clear();
         bool isEmpty() const;
         bool isRoot() const;
@@ -57,8 +56,6 @@ namespace ncore
         void makeRelativeTo(const dirpath_t& dirpath);
         void makeAbsoluteTo(const dirpath_t& dirpath);
 
-        dirpath_t relative();
-
         npath::string_t devname() const;  // "E:\documents\old\inventory\", -> "E:\"
         npath::string_t rootname() const; // "E:\documents\old\inventory\", -> "documents"
         npath::string_t basename() const; // "E:\documents\old\inventory\", -> "inventory"
@@ -66,27 +63,19 @@ namespace ncore
         dirpath_t  device() const;                 // "E:\documents\old\inventory\books\sci-fi\", -> "E:\"
         dirpath_t  root() const;                   // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\"
         dirpath_t  parent() const;                 // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\old\inventory\books\"
-        filepath_t file(crunes_t const& filepath); // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
-
-        s32 getLevels() const;
-
-        void down(crunes_t const& folder);
-        void up();
+        filepath_t file(crunes_t const& filename); // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
+        s32        depth() const;
+        void       down(crunes_t const& folder);
+        void       up();
 
         s32 compare(const dirpath_t& other) const;
 
         void to_string(runes_t& str) const;
         s32  to_strlen() const;
-
-        dirpath_t& operator=(dirpath_t const& other);
-
-        static void getSubDir(const dirpath_t& parentpath, const dirpath_t& path, dirpath_t& out_subpath);
     };
 
     inline bool operator==(const dirpath_t& left, const dirpath_t& right) { return left.compare(right) == 0; }
     inline bool operator!=(const dirpath_t& left, const dirpath_t& right) { return left.compare(right) != 0; }
-
-    extern dirpath_t operator+(const dirpath_t& dirpath, const dirpath_t& append_dirpath);
 
 }; // namespace ncore
 
