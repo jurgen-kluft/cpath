@@ -107,8 +107,6 @@ namespace ncore
             s32    get_path_strlen(node_t path) const;
             bool   remove_path(node_t item);
 
-            DCORE_CLASS_PLACEMENT_NEW_DELETE
-
             // -----------------------------------------------------------
             //
             u32                  m_max_path_objects;

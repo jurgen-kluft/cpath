@@ -62,7 +62,7 @@ namespace ncore
     {
         npath::root_t* root = m_dirpath.m_device->m_root;
 
-        pathparser_t parser;
+        npath::parser_t parser;
         parser.parse(devicename);
         if (parser.has_device())
         {
