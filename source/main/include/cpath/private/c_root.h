@@ -53,21 +53,19 @@ namespace ncore
 
             // -----------------------------------------------------------
             void register_fulldirpath(crunes_t const& fulldirpath, string_t& out_devicename, node_t& out_path);
-            void register_fulldirpath(const char* fulldirpath, string_t& out_devicename, node_t& out_path);
-            void register_fulldirpath(crunes_t const& fulldirpath, dirpath_t& out_dirpath);
-            void register_fulldirpath(const char* fulldirpath, dirpath_t& out_dirpath);
-
             void register_fullfilepath(crunes_t const& fullfilepath, string_t& out_devicename, node_t& out_path, string_t& out_filename, string_t& out_extension);
-            void register_fullfilepath(const char* fullfilepath, string_t& out_devicename, node_t& out_path, string_t& out_filename, string_t& out_extension);
-            void register_fullfilepath(crunes_t const& fullfilepath, filepath_t& out_filepath);
-            void register_fullfilepath(const char* fullfilepath, filepath_t& out_filepath);
 
-            void register_dirpath(crunes_t const& dirpath, node_t& out_path);
-            void register_filename(crunes_t const& namestr, string_t& filename, string_t& extension);
-            void register_name(crunes_t const& namestr, string_t& name);
-            bool register_userdata1(const crunes_t& devpathstr, s32 userdata1);
-            bool register_userdata2(const crunes_t& devpathstr, s32 userdata2);
-            bool register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr);
+            void      register_dirpath(crunes_t const& dirpath, node_t& out_path);
+            void      register_filename(crunes_t const& namestr, string_t& filename, string_t& extension);
+            void      register_name(crunes_t const& namestr, string_t& name);
+            bool      register_userdata1(const crunes_t& devpathstr, s32 userdata1);
+            bool      register_userdata2(const crunes_t& devpathstr, s32 userdata2);
+            bool      register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr);
+            s16       register_device(string_t device);
+            bool      has_device(const crunes_t& device_name);
+            s16       find_device(string_t devicename) const;
+            device_t* get_device(string_t devicename) const;
+            device_t* get_device(s16 index) const;
 
             device_t* get_pathdevice(dirpath_t const& dirpath);
             device_t* get_pathdevice(filepath_t const& filepath);
@@ -77,12 +75,6 @@ namespace ncore
             string_t  get_extension(filepath_t const& filepath);
             root_t*   get_root(dirpath_t const& dirpath);
             root_t*   get_root(filepath_t const& filepath);
-
-            bool      has_device(const crunes_t& device_name);
-            s16       register_device(crunes_t const& device);
-            s16       register_device(string_t device);
-            s16       find_device(string_t devicename) const;
-            device_t* get_device(s16 index);
 
             string_t  attach_pathstr(string_t name);
             node_t    attach_pathnode(node_t path);
@@ -118,11 +110,6 @@ namespace ncore
             strings_t*           m_strings;
             tree_t*              m_nodes;
             freelist_t<folder_t> m_folders;
-
-            static device_t* sNilDevice;
-            static node_t    sNilNode;
-            static string_t  sNilStr;
-            static node_t    sNilFolder;
         };
 
         struct device_t

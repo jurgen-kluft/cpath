@@ -14,38 +14,39 @@ using namespace ncore;
 
 UNITTEST_SUITE_BEGIN(filepath)
 {
-	UNITTEST_FIXTURE(main)
-	{
+    UNITTEST_FIXTURE(main)
+    {
         UNITTEST_ALLOCATOR;
 
-		UNITTEST_FIXTURE_SETUP()
-		{
-		}
+        UNITTEST_FIXTURE_SETUP() {}
 
-		UNITTEST_FIXTURE_TEARDOWN()
-		{}
+        UNITTEST_FIXTURE_TEARDOWN() {}
 
-		UNITTEST_TEST(constructor1)
-		{
-			filepath_t p1;
+        UNITTEST_TEST(constructor1)
+        {
+            filepath_t p1;
 
-			CHECK_TRUE(p1.isEmpty());
-		}
+            CHECK_TRUE(p1.isEmpty());
+        }
 
-		UNITTEST_TEST(constructor2)
-		{
+        UNITTEST_TEST(constructor2)
+        {
             npath::root_t reg;
             reg.init(Allocator);
 
-			const char* str = "TEST:\\textfiles\\docs\\readme.txt";
-			filepath_t p;
-            reg.register_fullfilepath(str, p);
+            const char* str = "TEST:\\textfiles\\docs\\readme.txt";
+            filepath_t  p;
 
-			CHECK_FALSE(p.isEmpty());
+            npath::string_t out_device;
+            npath::node_t   out_path;
+            npath::string_t out_filename;
+            npath::string_t out_extension;
+            reg.register_fullfilepath(str, out_device, out_path, out_filename, out_extension);
+
+            CHECK_FALSE(p.isEmpty());
 
             reg.exit(Allocator);
-		}
-
-	}
+        }
+    }
 }
 UNITTEST_SUITE_END

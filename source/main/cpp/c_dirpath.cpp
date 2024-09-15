@@ -14,7 +14,7 @@ namespace ncore
     // dirpath_t: "Device:\\Folder\Folder\"
     //==============================================================================
 
-    dirpath_t::dirpath_t() : m_device(npath::root_t::sNilDevice), m_path(npath::root_t::sNilNode) {}
+    dirpath_t::dirpath_t() : m_device(nullptr), m_path(0) {}
 
     dirpath_t::dirpath_t(dirpath_t const& other)
     {
@@ -44,13 +44,13 @@ namespace ncore
         npath::root_t* root = m_device->m_root;
         root->release_pathdevice(m_device);
         root->release_pathstr(m_path);
-        m_device = npath::root_t::sNilDevice;
-        m_path   = npath::root_t::sNilNode;
+        m_device = nullptr;
+        m_path   = 0;
     }
 
-    bool dirpath_t::isEmpty() const { return m_device == npath::root_t::sNilDevice && m_path == npath::root_t::sNilNode; }
-    bool dirpath_t::isRoot() const { return m_device != npath::root_t::sNilDevice && m_path != npath::root_t::sNilNode; }
-    bool dirpath_t::isRooted() const { return m_device != npath::root_t::sNilDevice; }
+    bool dirpath_t::isEmpty() const { return m_device == nullptr && m_path == 0; }
+    bool dirpath_t::isRoot() const { return m_device != nullptr && m_path != 0; }
+    bool dirpath_t::isRooted() const { return m_device != nullptr; }
 
     void dirpath_t::makeRelativeTo(const dirpath_t& dirpath)
     {

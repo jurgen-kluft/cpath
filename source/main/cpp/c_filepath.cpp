@@ -9,7 +9,7 @@
 
 namespace ncore
 {
-    filepath_t::filepath_t() : m_dirpath(), m_filename(npath::root_t::sNilStr), m_extension(npath::root_t::sNilStr) {}
+    filepath_t::filepath_t() : m_dirpath(), m_filename(0), m_extension(0) {}
     filepath_t::filepath_t(const filepath_t& other) : m_dirpath(other.m_dirpath)
     {
         m_filename  = m_dirpath.m_device->m_root->attach_pathstr(other.m_filename);
@@ -47,12 +47,12 @@ namespace ncore
         npath::root_t* root = m_dirpath.m_device->m_root;
         root->release_pathstr(m_filename);
         root->release_pathstr(m_extension);
-        m_filename  = npath::root_t::sNilStr;
-        m_extension = npath::root_t::sNilStr;
+        m_filename  = 0;
+        m_extension = 0;
     }
 
     bool filepath_t::isRooted() const { return m_dirpath.isRooted(); }
-    bool filepath_t::isEmpty() const { return m_dirpath.isEmpty() && m_filename == npath::root_t::sNilStr && m_extension == npath::root_t::sNilStr; }
+    bool filepath_t::isEmpty() const { return m_dirpath.isEmpty() && m_filename == 0 && m_extension == 0; }
 
     void filepath_t::makeRelativeTo(const dirpath_t& dirpath) { m_dirpath.makeRelativeTo(dirpath); }
     void filepath_t::makeAbsoluteTo(const dirpath_t& dirpath) { m_dirpath.makeAbsoluteTo(dirpath); }
@@ -66,8 +66,9 @@ namespace ncore
         parser.parse(devicename);
         if (parser.has_device())
         {
-            s16 const idev     = root->register_device(parser.m_device);
-            m_dirpath.m_device = root->get_device(idev);
+            npath::string_t device_string = root->find_or_insert_string(parser.m_device);
+            s16 const       idev          = root->register_device(device_string);
+            m_dirpath.m_device            = root->get_device(idev);
         }
     }
 
@@ -118,7 +119,7 @@ namespace ncore
     filepath_t filepath_t::relative() const
     {
         npath::root_t* root = m_dirpath.m_device->m_root;
-        filepath_t     fp(root->sNilDevice, m_dirpath.m_path, m_filename, m_extension);
+        filepath_t     fp(nullptr, m_dirpath.m_path, m_filename, m_extension);
         return fp;
     }
 
@@ -182,9 +183,9 @@ namespace ncore
 
     s32 filepath_t::to_strlen() const
     {
-        npath::root_t*         root         = m_dirpath.m_device->m_root;
-        crunes_t filenamestr  = root->get_crunes(m_filename);
-        crunes_t extensionstr = root->get_crunes(m_filename);
+        npath::root_t* root         = m_dirpath.m_device->m_root;
+        crunes_t       filenamestr  = root->get_crunes(m_filename);
+        crunes_t       extensionstr = root->get_crunes(m_filename);
         return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
     }
 

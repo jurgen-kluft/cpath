@@ -16,8 +16,6 @@ namespace ncore
 {
     namespace npath
     {
-        device_t* root_t::sNilDevice;
-
         void root_t::init(alloc_t* allocator, u32 max_items)
         {
             m_allocator = allocator;
@@ -30,15 +28,6 @@ namespace ncore
                 m_arr_devices[i] = (device_t*)m_allocator->allocate(sizeof(device_t), sizeof(void*));
             }
 
-            sNilDevice               = m_arr_devices[0];
-            sNilDevice->m_root       = this;
-            sNilDevice->m_alias      = 0;
-            sNilDevice->m_deviceName = 0;
-            sNilDevice->m_devicePath = 0;
-            sNilDevice->m_redirector = 0;
-            sNilDevice->m_userdata1  = 0;
-            sNilDevice->m_userdata2  = 0;
-
             m_strings = (strings_t*)m_allocator->allocate(sizeof(strings_t), sizeof(void*));
             m_strings->init(max_items);
 
@@ -50,7 +39,6 @@ namespace ncore
 
         void root_t::exit(alloc_t* allocator)
         {
-            sNilDevice = nullptr;
             for (s32 i = 0; i < m_num_devices; ++i)
             {
                 allocator->deallocate(m_arr_devices[i]);
@@ -230,18 +218,31 @@ namespace ncore
             return device;
         }
 
-        device_t* root_t::get_device(s16 index)
+        device_t* root_t::get_device(string_t devicename) const
+        {
+            s16 const device = find_device(devicename);
+            if (device != -1)
+            {
+                return m_arr_devices[device];
+            }
+            return nullptr;
+        }
+
+        device_t* root_t::get_device(s16 index) const
         {
             if (index == -1)
                 return nullptr;
             return m_arr_devices[index];
         }
 
-        node_t root_t::get_parent_path(node_t path)
-        {
-            // get folder_t*, then return the parent
-            return 0;
-        }
+        string_t  root_t::attach_pathstr(string_t name) { return name; }
+        node_t    root_t::attach_pathnode(node_t path) { return path; }
+        s16       root_t::attach_pathdevice(s16 idevice) { return idevice; }
+        device_t* root_t::attach_pathdevice(device_t* device) { return device; }
+        string_t  root_t::release_pathstr(string_t name) { return 0; }
+        node_t    root_t::release_pathnode(node_t path) { return 0; }
+        s16       root_t::release_pathdevice(s16 idevice) { return 0; }
+        s16       root_t::release_pathdevice(device_t* device) { return 0; }
 
         void root_t::resolve(filepath_t const& fp, device_t*& device, node_t& dir, string_t& filename, string_t& extension)
         {
@@ -492,6 +493,20 @@ namespace ncore
                 len += 1; // for the "\"
             }
             return len;
+        }
+
+        node_t root_t::find_or_insert_path(node_t parent, string_t str)
+        {
+            // parent node is a folder_t*, so we need to get the folder_t* and then
+            // use the tree of folders to see if there is a folder_t* with the same name as str.
+            // If there is no such folder, then we need to create a new folder_t* and insert it into the tree of folders of parent.
+            return 0;
+        }
+
+        node_t root_t::get_parent_path(node_t path)
+        {
+            // get folder_t*, then return the parent
+            return 0;
         }
 
         //  Objectives:
