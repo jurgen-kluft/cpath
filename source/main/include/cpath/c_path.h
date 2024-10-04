@@ -5,24 +5,25 @@
 #    pragma once
 #endif
 
+#include "ccore/c_allocator.h"
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 
 #include "cpath/private/c_freelist.h"
+#include "cpath/c_filepath.h"
 
 namespace ncore
 {
     class alloc_t;
-    class filepath_t;
-    class dirpath_t;
 
     namespace npath
     {
         struct device_t;
-        struct root_t;
+        typedef s16 idevice_t;
 
         struct strings_t;
         typedef u32 string_t;
+
         struct tree_t;
         typedef u32 node_t;
 
@@ -48,24 +49,19 @@ namespace ncore
             void exit(alloc_t* allocator);
 
             // -----------------------------------------------------------
-            void resolve(filepath_t const&, device_t*& device, node_t& dir, string_t& filename, string_t& extension);
-            void resolve(dirpath_t const&, device_t*& device, node_t& dir);
-
-            // -----------------------------------------------------------
             void register_fulldirpath(crunes_t const& fulldirpath, string_t& out_devicename, node_t& out_path);
             void register_fullfilepath(crunes_t const& fullfilepath, string_t& out_devicename, node_t& out_path, string_t& out_filename, string_t& out_extension);
 
+            // -----------------------------------------------------------
             void      register_dirpath(crunes_t const& dirpath, node_t& out_path);
             void      register_filename(crunes_t const& namestr, string_t& filename, string_t& extension);
             void      register_name(crunes_t const& namestr, string_t& name);
-            bool      register_userdata1(const crunes_t& devpathstr, s32 userdata1);
-            bool      register_userdata2(const crunes_t& devpathstr, s32 userdata2);
             bool      register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr);
-            s16       register_device(string_t device);
+            idevice_t register_device(string_t device);
             bool      has_device(const crunes_t& device_name);
-            s16       find_device(string_t devicename) const;
+            idevice_t find_device(string_t devicename) const;
             device_t* get_device(string_t devicename) const;
-            device_t* get_device(s16 index) const;
+            device_t* get_device(idevice_t index) const;
 
             device_t* get_pathdevice(dirpath_t const& dirpath);
             device_t* get_pathdevice(filepath_t const& filepath);
@@ -78,13 +74,13 @@ namespace ncore
 
             string_t  attach_pathstr(string_t name);
             node_t    attach_pathnode(node_t path);
-            s16       attach_pathdevice(s16 idevice);
+            idevice_t attach_pathdevice(idevice_t idevice);
             device_t* attach_pathdevice(device_t* device);
 
-            string_t release_pathstr(string_t name);
-            node_t   release_pathnode(node_t path);
-            s16      release_pathdevice(s16 idevice);
-            s16      release_pathdevice(device_t* device);
+            string_t  release_pathstr(string_t name);
+            node_t    release_pathnode(node_t path);
+            idevice_t release_pathdevice(idevice_t idevice);
+            idevice_t release_pathdevice(device_t* device);
 
             string_t find_string(crunes_t const& str) const;
             string_t find_or_insert_string(crunes_t const& str);
@@ -95,6 +91,8 @@ namespace ncore
             s32      compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
 
             node_t get_parent_path(node_t path);
+            node_t get_first_childpath(node_t path);
+            node_t get_next_childpath(node_t path);
             node_t find_or_insert_path(node_t parent, string_t str);
             s32    get_path_strlen(node_t path) const;
             bool   remove_path(node_t item);
@@ -125,14 +123,16 @@ namespace ncore
             void      to_string(runes_t& str) const;
             s32       to_strlen() const;
 
-            root_t*  m_root;
-            string_t m_alias;        // an alias redirection (e.g. "data")
-            string_t m_deviceName;   // "[appdir:\]data\bin.pc\", "[data:\]files\" to "[appdir:\]data\bin.pc\files\"
-            node_t   m_devicePath;   // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
-            s16      m_device_index; // index into m_pathreg->m_arr_devices
-            s16      m_redirector;   // If device path can point to another device_t
-            s32      m_userdata1;    //
-            s32      m_userdata2;    //
+            DCORE_CLASS_PLACEMENT_NEW_DELETE
+
+            root_t*   m_root;
+            string_t  m_alias;        // an alias redirection (e.g. "data")
+            string_t  m_deviceName;   // "[appdir:\]data\bin.pc\", "[data:\]files\" to "[appdir:\]data\bin.pc\files\"
+            node_t    m_devicePath;   // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
+            idevice_t m_device_index; // index into m_pathreg->m_arr_devices
+            idevice_t m_redirector;   // If device path can point to another device_t
+            s32       m_userdata1;    //
+            s32       m_userdata2;    //
         };
 
     } // namespace npath

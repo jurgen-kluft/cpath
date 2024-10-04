@@ -5,8 +5,6 @@
 #    pragma once
 #endif
 
-#include "ccore/c_debug.h"
-#include "cbase/c_allocator.h"
 #include "cbase/c_runes.h"
 
 namespace ncore

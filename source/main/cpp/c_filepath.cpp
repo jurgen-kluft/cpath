@@ -2,10 +2,10 @@
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 
-#include "cpath/private/c_root.h"
-#include "cpath/private/c_parser.h"
+#include "cpath/c_path.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/c_filepath.h"
+#include "cpath/private/c_parser.h"
 
 namespace ncore
 {

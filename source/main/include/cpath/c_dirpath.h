@@ -16,6 +16,7 @@ namespace ncore
     // dirpath_t
     // A path is never relative, it is always absolute. There is a way to make a path
     // 'appear' relative to another path, but the full path itself is always absolute.
+    // When no root is provided, it is assumed to be the 'application' root.
     //==============================================================================
 
     namespace npath
@@ -42,8 +43,8 @@ namespace ncore
     public:
         dirpath_t();
         dirpath_t(dirpath_t const& other);
-        dirpath_t(npath::device_t* device);
-        dirpath_t(npath::device_t* device, npath::node_t path);
+        explicit dirpath_t(npath::device_t* device);
+        explicit dirpath_t(npath::device_t* device, npath::node_t path);
         ~dirpath_t();
 
         void clear();

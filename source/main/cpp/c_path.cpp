@@ -6,9 +6,9 @@
 #include "cbase/c_runes.h"
 #include "ccore/c_target.h"
 
+#include "cpath/c_path.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/c_filepath.h"
-#include "cpath/private/c_root.h"
 #include "cpath/private/c_strings.h"
 #include "cpath/private/c_parser.h"
 
@@ -22,16 +22,16 @@ namespace ncore
 
             m_max_devices = 64;
             m_num_devices = 1;
-            m_arr_devices = (device_t**)m_allocator->allocate(m_max_devices * sizeof(device_t*));
+            m_arr_devices = g_allocate_array<device_t*>(m_allocator, m_max_devices);
             for (s32 i = 0; i < m_max_devices; ++i)
             {
-                m_arr_devices[i] = (device_t*)m_allocator->allocate(sizeof(device_t), sizeof(void*));
+                m_arr_devices[i] = g_construct<device_t>(m_allocator);
             }
 
-            m_strings = (strings_t*)m_allocator->allocate(sizeof(strings_t), sizeof(void*));
+            m_strings = g_construct<strings_t>(m_allocator);
             m_strings->init(max_items);
 
-            m_nodes = (tree_t*)m_allocator->allocate(sizeof(tree_t), sizeof(void*));
+            m_nodes = g_construct<tree_t>(m_allocator);
             m_nodes->init();
 
             m_folders.init();
@@ -41,17 +41,17 @@ namespace ncore
         {
             for (s32 i = 0; i < m_num_devices; ++i)
             {
-                allocator->deallocate(m_arr_devices[i]);
+                g_destruct(m_allocator, m_arr_devices[i]);
             }
-            allocator->deallocate(m_arr_devices);
+            g_deallocate_array(m_allocator, m_arr_devices);
             m_num_devices = 0;
 
             m_folders.exit();
             m_nodes->exit();
             m_strings->exit();
 
-            allocator->deallocate(m_nodes);
-            allocator->deallocate(m_strings);
+            g_destruct(m_allocator, m_nodes);
+            g_destruct(m_allocator, m_strings);
         }
 
         string_t root_t::find_string(const crunes_t& namestr) const
@@ -185,9 +185,9 @@ namespace ncore
             }
         }
 
-        s16 root_t::find_device(string_t devicename) const
+        idevice_t root_t::find_device(string_t devicename) const
         {
-            for (s16 i = 0; i < m_num_devices; ++i)
+            for (idevice_t i = 0; i < m_num_devices; ++i)
             {
                 if (m_arr_devices[i]->m_deviceName == devicename)
                 {
@@ -197,9 +197,9 @@ namespace ncore
             return -1;
         }
 
-        s16 root_t::register_device(string_t devicename)
+        idevice_t root_t::register_device(string_t devicename)
         {
-            s16 device = find_device(devicename);
+            idevice_t device = find_device(devicename);
             if (device == -1)
             {
                 if (m_num_devices < 64)
@@ -220,7 +220,7 @@ namespace ncore
 
         device_t* root_t::get_device(string_t devicename) const
         {
-            s16 const device = find_device(devicename);
+            idevice_t const device = find_device(devicename);
             if (device != -1)
             {
                 return m_arr_devices[device];
@@ -228,7 +228,7 @@ namespace ncore
             return nullptr;
         }
 
-        device_t* root_t::get_device(s16 index) const
+        device_t* root_t::get_device(idevice_t index) const
         {
             if (index == -1)
                 return nullptr;
@@ -237,26 +237,12 @@ namespace ncore
 
         string_t  root_t::attach_pathstr(string_t name) { return name; }
         node_t    root_t::attach_pathnode(node_t path) { return path; }
-        s16       root_t::attach_pathdevice(s16 idevice) { return idevice; }
+        idevice_t root_t::attach_pathdevice(idevice_t idevice) { return idevice; }
         device_t* root_t::attach_pathdevice(device_t* device) { return device; }
         string_t  root_t::release_pathstr(string_t name) { return 0; }
         node_t    root_t::release_pathnode(node_t path) { return 0; }
-        s16       root_t::release_pathdevice(s16 idevice) { return 0; }
-        s16       root_t::release_pathdevice(device_t* device) { return 0; }
-
-        void root_t::resolve(filepath_t const& fp, device_t*& device, node_t& dir, string_t& filename, string_t& extension)
-        {
-            device    = get_pathdevice(fp);
-            dir       = get_path(fp);
-            filename  = get_filename(fp);
-            extension = get_extension(fp);
-        }
-
-        void root_t::resolve(dirpath_t const& dp, device_t*& device, node_t& dir)
-        {
-            device = get_pathdevice(dp);
-            dir    = get_path(dp);
-        }
+        idevice_t root_t::release_pathdevice(idevice_t idevice) { return 0; }
+        idevice_t root_t::release_pathdevice(device_t* device) { return 0; }
 
         device_t* root_t::get_pathdevice(dirpath_t const& dirpath) { return dirpath.m_device; }
         device_t* root_t::get_pathdevice(filepath_t const& filepath) { return filepath.m_dirpath.m_device; }
@@ -287,7 +273,7 @@ namespace ncore
         //     string_t extension  = 0;
         //     register_fullfilepath(str, devicename, path, filename, extension);
 
-        //     s16 const  device  = register_device(devicename);
+        //     idevice_t const  device  = register_device(devicename);
         //     device_t*  pdevice = get_device(device);
         //     filepath_t filepath(pdevice, path, filename, extension);
         //     fp = filepath;
@@ -298,7 +284,7 @@ namespace ncore
         //     string_t devicename = 0;
         //     node_t   path       = 0;
         //     register_fulldirpath(str, devicename, path);
-        //     s16 const device  = register_device(devicename);
+        //     idevice_t const device  = register_device(devicename);
         //     device_t* pdevice = get_device(device);
         //     dirpath_t dirpath(pdevice, path);
         //     dp = dirpath;
@@ -309,42 +295,10 @@ namespace ncore
             string_t devname = find_string(device_name);
             if (devname != 0)
             {
-                s16 const dev = find_device(devname);
+                idevice_t const dev = find_device(devname);
                 return dev >= 0;
             }
             return false;
-        }
-
-        bool root_t::register_userdata1(const crunes_t& devpathstr, s32 userdata1)
-        {
-            string_t devname = 0;
-            node_t   devpath = 0;
-            register_fulldirpath(devpathstr, devname, devpath);
-
-            s16 const device  = register_device(devname);
-            device_t* dev     = get_device(device);
-            dev->m_devicePath = devpath;
-            if (dev->m_userdata1 == -1)
-            {
-                dev->m_userdata1 = userdata1;
-            }
-            return true;
-        }
-
-        bool root_t::register_userdata2(const crunes_t& devpathstr, s32 userdata2)
-        {
-            string_t devname = 0;
-            node_t   devpath = 0;
-            register_fulldirpath(devpathstr, devname, devpath);
-
-            s16 const device  = register_device(devname);
-            device_t* dev     = get_device(device);
-            dev->m_devicePath = devpath;
-            if (dev->m_userdata2 == -1)
-            {
-                dev->m_userdata2 = userdata2;
-            }
-            return true;
         }
 
         bool root_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
@@ -356,12 +310,12 @@ namespace ncore
             node_t   devpath = 0;
             register_fulldirpath(devpathstr, devname, devpath);
 
-            s16 const device    = register_device(aliasname);
-            device_t* alias     = get_device(device);
-            alias->m_alias      = aliasname;
-            alias->m_deviceName = devname;
-            alias->m_devicePath = devpath;
-            alias->m_redirector = register_device(devname);
+            idevice_t const device = register_device(aliasname);
+            device_t*       alias  = get_device(device);
+            alias->m_alias         = aliasname;
+            alias->m_deviceName    = devname;
+            alias->m_devicePath    = devpath;
+            alias->m_redirector    = register_device(devname);
 
             return true;
         }
@@ -383,15 +337,16 @@ namespace ncore
 
         device_t* device_t::construct(alloc_t* allocator, root_t* owner)
         {
-            void*     device_mem = allocator->allocate(sizeof(device_t), sizeof(void*));
-            device_t* device     = static_cast<device_t*>(device_mem);
+            // void*     device_mem = allocator->allocate(sizeof(device_t), sizeof(void*));
+            // device_t* device     = static_cast<device_t*>(device_mem);
+            device_t* device = g_construct<device_t>(allocator);
             device->init(owner);
             return device;
         }
 
         void device_t::destruct(alloc_t* allocator, device_t*& device)
         {
-            allocator->deallocate(device);
+            g_destruct(allocator, device);
             device = nullptr;
         }
 
@@ -436,13 +391,13 @@ namespace ncore
         void device_t::to_string(runes_t& str) const
         {
             s32             i            = 0;
-            s16             device_index = m_device_index;
+            idevice_t       device_index = m_device_index;
             device_t const* devices[32];
             do
             {
-                device_t* device       = m_root->m_arr_devices[device_index];
-                devices[i++]           = device;
-                s16 const device_index = device->m_redirector;
+                device_t* device             = m_root->m_arr_devices[device_index];
+                devices[i++]                 = device;
+                idevice_t const device_index = device->m_redirector;
             } while (device_index > 0 && i < 32);
 
             device_t const* device = devices[--i];
@@ -468,13 +423,13 @@ namespace ncore
         s32 device_t::to_strlen() const
         {
             s32             i            = 0;
-            s16             device_index = m_device_index;
+            idevice_t       device_index = m_device_index;
             device_t const* devices[32];
             do
             {
-                device_t* device       = m_root->m_arr_devices[device_index];
-                devices[i++]           = device;
-                s16 const device_index = device->m_redirector;
+                device_t* device             = m_root->m_arr_devices[device_index];
+                devices[i++]                 = device;
+                idevice_t const device_index = device->m_redirector;
             } while (device_index > 0 && i < 32);
 
             device_t const* device = devices[--i];

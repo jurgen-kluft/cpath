@@ -3,10 +3,10 @@
 #include "cbase/c_integer.h"
 #include "cbase/c_runes.h"
 
+#include "cpath/c_path.h"
 #include "cpath/c_filepath.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/private/c_parser.h"
-#include "cpath/private/c_root.h"
 
 namespace ncore
 {

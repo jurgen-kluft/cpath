@@ -40,9 +40,9 @@ namespace ncore
     public:
         filepath_t();
         filepath_t(const filepath_t&);
-        filepath_t(npath::string_t filename, npath::string_t extension);
-        filepath_t(npath::device_t* device, npath::node_t dirpath, npath::string_t filename, npath::string_t extension);
-        filepath_t(dirpath_t const& dirpath, npath::string_t filename, npath::string_t extension);
+        explicit filepath_t(npath::string_t filename, npath::string_t extension);
+        explicit filepath_t(npath::device_t* device, npath::node_t dirpath, npath::string_t filename, npath::string_t extension);
+        explicit filepath_t(dirpath_t const& dirpath, npath::string_t filename, npath::string_t extension);
         ~filepath_t();
 
         void clear();
@@ -77,7 +77,7 @@ namespace ncore
         void down(crunes_t const& folder);
         void up();
 
-        s32  compare(const filepath_t& right) const;
+        s32 compare(const filepath_t& right) const;
 
         // void to_string(runes_t& str) const;
         // s32  to_strlen() const;

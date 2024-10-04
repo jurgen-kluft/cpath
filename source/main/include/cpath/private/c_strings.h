@@ -5,6 +5,7 @@
 #    pragma once
 #endif
 
+#include "ccore/c_allocator.h"
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 #include "cpath/private/c_freelist.h"
@@ -37,6 +38,8 @@ namespace ncore
             u32  get_len(string_t index) const;
             s8   compare(string_t left, string_t right) const;
             void view_string(string_t str, utf8::pcrune& out_str, u32& out_len) const;
+
+            DCORE_CLASS_PLACEMENT_NEW_DELETE
 
         private:
             struct obj_t

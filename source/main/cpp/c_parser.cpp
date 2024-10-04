@@ -1,8 +1,4 @@
-#include "cbase/c_allocator.h"
-#include "cbase/c_binary_search.h"
-#include "cbase/c_buffer.h"
 #include "ccore/c_debug.h"
-#include "cbase/c_hash.h"
 #include "cbase/c_runes.h"
 #include "ccore/c_target.h"
 
@@ -82,21 +78,15 @@ namespace ncore
             return false;
         }
 
-        crunes_t parser_t::deviceAndPath() const
-        {
-            // example: e:\projects\binary_reader\bin\book.pdf, "e:\projects\binary_reader\bin\"
-            return nrunes::selectFromToInclude(m_device, m_device, m_path);
-        }
+        // example: e:\projects\binary_reader\bin\book.pdf, "e:\projects\binary_reader\bin\"
+        crunes_t parser_t::deviceAndPath() const { return nrunes::selectFromToInclude(m_device, m_device, m_path); }
 
-        crunes_t parser_t::path() const
-        {
-            // example: e:\projects\binary_reader\bin\book.pdf, "projects\binary_reader\bin\"
-            return m_path;
-        }
+        // example: e:\projects\binary_reader\bin\book.pdf, "projects\binary_reader\bin\"
+        crunes_t parser_t::path() const { return m_path; }
 
+        // example: projects\binary_reader\bin\, "projects\" -> "binary_reader\" -> "bin\"
         bool parser_t::next_folder(crunes_t& folder, char slash) const
         {
-            // example: projects\binary_reader\bin\, "projects\" -> "binary_reader\" -> "bin\"
             folder = nrunes::selectAfterExclude(m_path, folder);
             nrunes::trimLeft(folder, slash);
             folder = nrunes::findSelectUntil(folder, slash);

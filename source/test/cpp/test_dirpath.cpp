@@ -5,8 +5,8 @@
 
 #include "cunittest/cunittest.h"
 
+#include "cpath/c_path.h"
 #include "cpath/c_dirpath.h"
-#include "cpath/private/c_root.h"
 
 #include "cpath/test_allocator.h"
 
