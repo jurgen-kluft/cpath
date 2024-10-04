@@ -55,7 +55,7 @@ namespace ncore
         // dirpath = "E:\documents\old\inventory\books\sci-fi\"
         // returns "books\sci-fi\" (device = "E", base = "documents\old\inventory\", path = "books\sci-fi\")
         dirpath_t makeRelative(const dirpath_t& dirpath) const;
-        dirpath_t makeAbsolute() const;
+        dirpath_t makeAbsolute(const dirpath_t& dirpath) const;
 
         npath::string_t devname() const;  // "E:\documents\old\inventory\", -> "E"
         npath::string_t rootname() const; // "E:\documents\old\inventory\", -> "documents"

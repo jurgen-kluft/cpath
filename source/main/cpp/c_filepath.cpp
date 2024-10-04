@@ -54,8 +54,8 @@ namespace ncore
     bool filepath_t::isRooted() const { return m_dirpath.isRooted(); }
     bool filepath_t::isEmpty() const { return m_dirpath.isEmpty() && m_filename == 0 && m_extension == 0; }
 
-    void filepath_t::makeRelativeTo(const dirpath_t& dirpath) { m_dirpath.makeRelativeTo(dirpath); }
-    void filepath_t::makeAbsoluteTo(const dirpath_t& dirpath) { m_dirpath.makeAbsoluteTo(dirpath); }
+    void filepath_t::makeRelativeTo(const dirpath_t& dirpath) { m_dirpath = m_dirpath.makeRelative(dirpath); }
+    void filepath_t::makeAbsoluteTo(const dirpath_t& dirpath) { m_dirpath = m_dirpath.makeAbsolute(dirpath); }
     void filepath_t::setDirpath(dirpath_t const& dirpath) { m_dirpath = dirpath; }
 
     void filepath_t::setDevice(crunes_t const& devicename)
@@ -161,33 +161,31 @@ namespace ncore
     }
 
     void filepath_t::combine(npath::node_t folder, filepath_t const& filepath) {}
-
     void filepath_t::combine(filepath_t const& filepath, npath::node_t folder) {}
-
     void filepath_t::down(crunes_t const& folder) { m_dirpath.down(folder); }
 
     void filepath_t::up() {}
 
-    void filepath_t::to_string(runes_t& str) const
-    {
-        npath::root_t* root = m_dirpath.m_device->m_root;
+    // void filepath_t::to_string(runes_t& str) const
+    // {
+    //     npath::root_t* root = m_dirpath.m_device->m_root;
 
-        m_dirpath.to_string(str);
+    //     m_dirpath.to_string(str);
 
-        crunes_t filenamestr = root->get_crunes(m_filename);
-        nrunes::concatenate(str, filenamestr);
+    //     crunes_t filenamestr = root->get_crunes(m_filename);
+    //     nrunes::concatenate(str, filenamestr);
 
-        crunes_t extension_str = root->get_crunes(m_filename);
-        nrunes::concatenate(str, extension_str);
-    }
+    //     crunes_t extension_str = root->get_crunes(m_filename);
+    //     nrunes::concatenate(str, extension_str);
+    // }
 
-    s32 filepath_t::to_strlen() const
-    {
-        npath::root_t* root         = m_dirpath.m_device->m_root;
-        crunes_t       filenamestr  = root->get_crunes(m_filename);
-        crunes_t       extensionstr = root->get_crunes(m_filename);
-        return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
-    }
+    // s32 filepath_t::to_strlen() const
+    // {
+    //     npath::root_t* root         = m_dirpath.m_device->m_root;
+    //     crunes_t       filenamestr  = root->get_crunes(m_filename);
+    //     crunes_t       extensionstr = root->get_crunes(m_filename);
+    //     return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
+    // }
 
     s32 filepath_t::compare(const filepath_t& right) const
     {

@@ -78,8 +78,9 @@ namespace ncore
         void up();
 
         s32  compare(const filepath_t& right) const;
-        void to_string(runes_t& str) const;
-        s32  to_strlen() const;
+
+        // void to_string(runes_t& str) const;
+        // s32  to_strlen() const;
 
         filepath_t& operator=(const filepath_t& fp);
     };

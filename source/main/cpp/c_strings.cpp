@@ -19,7 +19,7 @@ namespace ncore
             m_data_buffer.init(1024 * 1024, max_items * 32, sizeof(u8));
             m_data_ptr = m_data_buffer.m_ptr;
             m_str_array.init(max_items);
-            m_str_tree.init( max_items);
+            m_str_tree.init(max_items);
 
             m_str_root = 0;
         }
@@ -40,7 +40,7 @@ namespace ncore
             while (str < end)
             {
                 utf8::rune r = *str++;
-                hash         = hash + r.value * 31;
+                hash         = hash + r.r * 31;
             }
             return hash;
         }
@@ -61,8 +61,8 @@ namespace ncore
             {
                 utf8::rune rA = *strA8++;
                 utf8::rune rB = *strB8++;
-                if (rA.value != rB.value)
-                    return rA.value < rB.value ? -1 : 1;
+                if (rA.r != rB.r)
+                    return rA.r < rB.r ? -1 : 1;
             }
             return 0;
         }
@@ -87,7 +87,7 @@ namespace ncore
             utf8::prune       dst8     = dst;
             while (str8 < end8)
                 *dst8++ = *src8++;
-            dst->value = 0;
+            dst->r = 0;
 
             obj_t*    str       = m_str_array.alloc();
             u32 const str_index = m_str_array.idx_of(str);

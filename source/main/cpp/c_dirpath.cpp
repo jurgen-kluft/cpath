@@ -52,7 +52,7 @@ namespace ncore
     bool dirpath_t::isRoot() const { return m_device != nullptr && m_path != 0; }
     bool dirpath_t::isRooted() const { return m_device != nullptr; }
 
-    void dirpath_t::makeRelativeTo(const dirpath_t& dirpath)
+    dirpath_t dirpath_t::makeRelative(const dirpath_t& dirpath) const
     {
         // try and find an overlap of folder
         //   this    = a b c d [e f]
@@ -61,9 +61,10 @@ namespace ncore
         //   result  = g h i j
 
         // TODO
+        return dirpath_t();
     }
 
-    void dirpath_t::makeAbsoluteTo(const dirpath_t& dirpath)
+    dirpath_t dirpath_t::makeAbsolute(const dirpath_t& dirpath) const
     {
         //   this    = a b c d [e f]
         //   dirpath = [e f] g h i j k
@@ -71,6 +72,7 @@ namespace ncore
         //   result  = a b c d [e f] g h i j k
 
         // TODO
+        return dirpath_t();
     }
 
     npath::string_t dirpath_t::devname() const { return m_device->m_deviceName; }
@@ -116,6 +118,57 @@ namespace ncore
         return dp;
     }
 
+    s32 dirpath_t::depth() const
+    {
+        if (m_path == 0)
+            return 0;
+        s32              levels = 1;
+        npath::root_t*   root   = m_device->m_root;
+        npath::node_t    iter   = m_path;
+        npath::folder_t* folder = root->m_folders.ptr_of(iter);
+        while (folder->m_parent != 0)
+        {
+            iter   = folder->m_parent;
+            folder = root->m_folders.ptr_of(iter);
+            ++levels;
+        }
+        return levels;
+    }
+
+    dirpath_t dirpath_t::up() const
+    {
+        dirpath_t dp;
+        dp.m_device = this->m_device;
+        dp.m_base   = this->m_base;
+        dp.m_path   = this->m_path;
+
+        npath::root_t*   root   = m_device->m_root;
+        npath::folder_t* folder = root->m_folders.ptr_of(m_path);
+        dp.m_path               = folder->m_parent;
+        return dp;
+    }
+
+    dirpath_t dirpath_t::down() const
+    {
+        // return the first child folder of this dirpath
+        // TODO
+        return dirpath_t();
+    }
+
+    void dirpath_t::down(crunes_t const& folder)
+    {
+        npath::root_t*  root       = m_device->m_root;
+        npath::string_t folder_str = root->find_or_insert_string(folder);
+        m_path                     = root->find_or_insert_path(m_path, folder_str);
+    }
+
+    dirpath_t dirpath_t::next() const
+    {
+        // return the next sibling
+        // TODO
+        return dirpath_t();
+    }
+
     filepath_t dirpath_t::file(crunes_t const& filepath)
     {
         npath::root_t* root = m_device->m_root;
@@ -143,38 +196,6 @@ namespace ncore
         return filepath_t(m_device, m_path, 0, 0);
     }
 
-    s32 dirpath_t::depth() const
-    {
-        if (m_path == 0)
-            return 0;
-        s32              levels = 1;
-        npath::root_t*   root   = m_device->m_root;
-        npath::node_t    iter   = m_path;
-        npath::folder_t* folder = root->m_folders.ptr_of(iter);
-        while (folder->m_parent != 0)
-        {
-            iter   = folder->m_parent;
-            folder = root->m_folders.ptr_of(iter);
-            ++levels;
-        }
-        return levels;
-    }
-
-    void dirpath_t::down(crunes_t const& folder)
-    {
-        npath::root_t*  root       = m_device->m_root;
-        npath::string_t folder_str = root->find_or_insert_string(folder);
-        m_path                     = root->find_or_insert_path(m_path, folder_str);
-    }
-
-    void dirpath_t::up()
-    {
-        npath::root_t*   root   = m_device->m_root;
-        npath::folder_t* folder = root->m_folders.ptr_of(m_path);
-        root->release_pathstr(m_path);
-        m_path = folder->m_parent;
-    }
-
     s32 dirpath_t::compare(const dirpath_t& other) const
     {
         s32 const de = other.m_device->compare(m_device);
@@ -184,20 +205,35 @@ namespace ncore
         return pe;
     }
 
-    void dirpath_t::to_string(runes_t& str) const
-    {
-        npath::root_t* root = m_device->m_root;
-        m_device->to_string(str);
-        root->to_string(m_path, str);
-    }
+    // void dirpath_t::to_string(runes_t& str) const
+    // {
+    //     npath::root_t* root = m_device->m_root;
+    //     m_device->to_string(str);
+    //     root->to_string(m_path, str);
+    // }
 
-    s32 dirpath_t::to_strlen() const
-    {
-        npath::root_t* root = m_device->m_root;
-        s32            len  = m_device->to_strlen();
-        len += root->to_strlen(m_path);
-        return len;
-    }
+    // s32 dirpath_t::to_strlen() const
+    // {
+    //     npath::root_t* root = m_device->m_root;
+    //     s32            len  = m_device->to_strlen();
+    //     len += root->to_strlen(m_path);
+    //     return len;
+    // }
+
+    void dirpath_t::relative_path_to_string(runes_t& str) const {}
+    s32  dirpath_t::relative_path_to_strlen() const { return 0; }
+
+    // (device = "E", base = "documents\old\inventory\", path = "books\sci-fi\") -> "E:\documents\"
+    void dirpath_t::root_path_to_string(runes_t& str) const {}
+    s32  dirpath_t::root_path_to_strlen() const { return 0; }
+
+    // (device = "E", base = "documents\old\inventory\", path = "books\sci-fi\") -> "E:\documents\old\inventory\"
+    void dirpath_t::base_path_to_string(runes_t& str) const {}
+    s32  dirpath_t::base_path_to_strlen() const { return 0; }
+
+    // (device = "E", base = "documents\old\inventory\", path = "books\sci-fi\") -> "E:\documents\old\inventory\books\sci-fi\"
+    void dirpath_t::full_path_to_string(runes_t& str) const {}
+    s32  dirpath_t::full_path_to_strlen() const { return 0; }
 
     dirpath_t& dirpath_t::operator=(dirpath_t const& other)
     {
