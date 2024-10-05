@@ -8,10 +8,10 @@ namespace ncore
 {
     namespace npath
     {
-        // Note: Index 0 is used as a null index
+        // Note: Index 0xFFFFFFFF is reserved a 'null'
         void* freelist_alloc(u8* memory, u32 _item_size, u32& _free_head, u32& _free_index)
         {
-            if (_free_head > 0)
+            if (_free_head != 0xFFFFFFFF)
             {
                 u32 const index = _free_head;
                 _free_head      = *((u32*)(memory + index * _item_size));
@@ -30,8 +30,8 @@ namespace ncore
 
         void freelist_reset(u32& _free_head, u32& _free_index)
         {
-            _free_head  = 0;
-            _free_index = 1;
+            _free_head  = 0xFFFFFFFF;
+            _free_index = 0;
         }
     } // namespace npath
 } // namespace ncore

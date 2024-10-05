@@ -39,9 +39,10 @@ namespace ncore
 
         void root_t::exit(alloc_t* allocator)
         {
-            for (s32 i = 0; i < m_num_devices; ++i)
+            for (s32 i = 0; i < m_max_devices; ++i)
             {
-                g_destruct(m_allocator, m_arr_devices[i]);
+                if (m_arr_devices[i] != nullptr)
+                    g_destruct(m_allocator, m_arr_devices[i]);
             }
             g_deallocate_array(m_allocator, m_arr_devices);
             m_num_devices = 0;

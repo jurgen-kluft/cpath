@@ -34,9 +34,12 @@ namespace ncore
 
     dirpath_t::~dirpath_t()
     {
-        npath::root_t* root = m_device->m_root;
-        root->release_pathdevice(m_device);
-        root->release_pathstr(m_path);
+        if (m_device != nullptr)
+        {
+            npath::root_t* root = m_device->m_root;
+            root->release_pathdevice(m_device);
+            root->release_pathstr(m_path);
+        }
     }
 
     void dirpath_t::clear()

@@ -36,43 +36,35 @@ namespace ncore
             if (os == MACOS || os == LINUX)
             {
                 // MacOS, path format is /Volume/Path/To/File
-
-                crunes_t slashes("/", 0, 1, 1);
                 if (nrunes::first_char(fullpath) == '/')
                 {
-                    crunes_t adjustedpath = fullpath.view(1);
+                    // We will manually iterate the string to find the device, path, filename and extension
 
-                    m_device       = nrunes::findLastSelectUntil(adjustedpath, '/');
-                    m_path         = nrunes::findLastSelectUntilIncluded(adjustedpath, slashes);
-                    m_filename     = nrunes::selectAfterExclude(adjustedpath, m_path);
-                    m_filename     = nrunes::findLastSelectUntil(m_filename, '.');
-                    m_extension    = nrunes::selectAfterExclude(adjustedpath, m_filename);
-                    m_first_folder = nrunes::findSelectUntilIncluded(m_path, slashes);
+
                     return true;
                 }
                 else
                 {
                     m_device       = crunes_t();
-                    m_path         = nrunes::findLastSelectUntilIncluded(fullpath, slashes);
+                    m_path         = nrunes::findLastSelectUntilIncluded(fullpath, '/');
                     m_filename     = nrunes::selectAfterExclude(fullpath, m_path);
                     m_filename     = nrunes::findLastSelectUntil(m_filename, '.');
                     m_extension    = nrunes::selectAfterExclude(fullpath, m_filename);
-                    m_first_folder = nrunes::findSelectUntilIncluded(m_path, slashes);
+                    m_first_folder = nrunes::findSelectUntilIncluded(m_path, '/');
                     return true;
                 }
             }
             else if (os == WINDOWS)
             {
-                crunes_t slashes("\\/", 0, 2, 2);
-                crunes_t devicesep(":\\", 0, 2, 2);
-
-                m_device          = nrunes::findSelectUntilIncludedAbortAtOneOf(fullpath, devicesep, slashes);
-                crunes_t filepath = nrunes::selectAfterExclude(fullpath, m_device);
-                m_path            = nrunes::findLastSelectUntilIncluded(filepath, slashes);
-                m_filename        = nrunes::selectAfterExclude(fullpath, m_path);
-                m_filename        = nrunes::findLastSelectUntil(m_filename, '.');
-                m_extension       = nrunes::selectAfterExclude(fullpath, m_filename);
-                m_first_folder    = nrunes::findSelectUntilIncluded(m_path, slashes);
+                m_device = nrunes::findSelectUntilIncluded(fullpath, ':');
+                nrunes::selectMoreRight(m_device, '\\');
+                crunes_t path = nrunes::selectAfterExclude(fullpath, m_device);
+                nrunes::trimLeft(path, '/');
+                m_path         = nrunes::findLastSelectUntilIncluded(fullpath, '/');
+                m_filename     = nrunes::selectAfterExclude(fullpath, m_path);
+                m_filename     = nrunes::findLastSelectUntil(m_filename, '.');
+                m_extension    = nrunes::selectAfterExclude(fullpath, m_filename);
+                m_first_folder = nrunes::findSelectUntilIncluded(m_path, '/');
                 return true;
             }
             return false;

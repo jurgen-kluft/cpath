@@ -15,7 +15,7 @@ namespace ncore
 
         void*        freelist_alloc(u8* memory, u32 _item_size, u32& _free_head, u32& _free_index);
         void         freelist_free(void* item, u8* memory, u32 _item_size, u32& _free_head);
-        inline bool  freelist_isfull(u32 _free_head, u32 _free_index, u32 _max_index) { return _free_head == 0 && _free_index >= _max_index; }
+        inline bool  freelist_isfull(u32 _free_head, u32 _free_index, u32 _max_index) { return _free_head == 0xFFFFFFFF && _free_index >= _max_index; }
         void         freelist_reset(u32& _free_head, u32& _free_index);
         inline u32   freelist_idx_of(void const* item, u8* memory, u32 _item_size) { return (u32)((u8*)item - memory) / _item_size; }
         inline void* freelist_ptr_of(u32 index, u8* memory, u32 _item_size) { return memory + index * _item_size; }
@@ -42,7 +42,9 @@ namespace ncore
             inline T* alloc()
             {
                 if (freelist_isfull(m_free_head, m_free_index, m_memory.m_committed))
+                {
                     m_memory.add_capacity(8192, sizeof(T));
+                }
                 return (T*)freelist_alloc(m_memory.m_ptr, sizeof(T), m_free_head, m_free_index);
             }
 

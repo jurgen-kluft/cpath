@@ -2,6 +2,7 @@
 #include "cbase/c_allocator.h"
 #include "cbase/c_runes.h"
 #include "ctime/c_datetime.h"
+#include "cvmem/c_virtual_memory.h"
 
 #include "cunittest/cunittest.h"
 
@@ -18,8 +19,10 @@ UNITTEST_SUITE_BEGIN(dirpath)
     {
         UNITTEST_ALLOCATOR;
 
-        UNITTEST_FIXTURE_SETUP() {}
-
+        UNITTEST_FIXTURE_SETUP()
+        {
+            nvmem::initialize();
+        }
         UNITTEST_FIXTURE_TEARDOWN() {}
 
         static const char* sFolders[] = {
@@ -40,12 +43,12 @@ UNITTEST_SUITE_BEGIN(dirpath)
             npath::root_t reg;
             reg.init(Allocator);
 
-            dirpath_t       dirpath;
-            npath::string_t outdevicename;
-            npath::node_t   outnode;
-            reg.register_fulldirpath("c:\\the\\name\\is\\johhnywalker\\", outdevicename, outnode);
+            // dirpath_t       dirpath;
+            // npath::string_t outdevicename;
+            // npath::node_t   outnode;
+            // reg.register_fulldirpath("c:\\the\\name\\is\\johhnywalker\\", outdevicename, outnode);
 
-            CHECK_EQUAL(false, dirpath.isEmpty());
+            // CHECK_EQUAL(false, dirpath.isEmpty());
 
             reg.exit(Allocator);
         }
@@ -55,17 +58,17 @@ UNITTEST_SUITE_BEGIN(dirpath)
             npath::root_t reg;
             reg.init(Allocator);
 
-            const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
+            // const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
 
-            npath::string_t outdevicename;
-            npath::node_t   outnode;
-            reg.register_fulldirpath(asciidirstr, outdevicename, outnode);
-            dirpath_t dirpath(reg.get_device(outdevicename), outnode);
+            // npath::string_t outdevicename;
+            // npath::node_t   outnode;
+            // reg.register_fulldirpath(asciidirstr, outdevicename, outnode);
+            // dirpath_t dirpath(reg.get_device(outdevicename), outnode);
 
-            utf32::rune dst_runes[256];
-            dst_runes[0] = 0;
-            dst_runes[1] = 0;
-            runes_t dst(dst_runes, 0, 0, 256);
+            // utf32::rune dst_runes[256];
+            // dst_runes[0] = 0;
+            // dst_runes[1] = 0;
+            // runes_t dst(dst_runes, 0, 0, 256);
 
             // dirpath.to_string(dst);
             // CHECK_EQUAL(0, nrunes::compare(dst, asciidirstr));

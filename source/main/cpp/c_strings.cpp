@@ -16,7 +16,7 @@ namespace ncore
 
         void strings_t::init(u32 max_items)
         {
-            m_data_buffer.init(1024 * 1024, max_items * 32, sizeof(u8));
+            m_data_buffer.init(max_items, max_items * 32, sizeof(u8));
             m_data_ptr = m_data_buffer.m_ptr;
             m_str_array.init(max_items);
             m_str_tree.init(max_items);
@@ -74,8 +74,6 @@ namespace ncore
             strings_t::obj_t const* node_str = strings->m_str_array.ptr_of(node_item);
             return strings->compare_str(find_str, node_str);
         }
-
-        string_t find_or_insert(utf8::pcrune str, u32 byte_len);
 
         string_t strings_t::find_or_insert(utf8::pcrune _str, u32 _byte_len)
         {

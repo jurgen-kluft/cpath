@@ -36,9 +36,12 @@ namespace ncore
 
     filepath_t::~filepath_t()
     {
-        npath::root_t* root = m_dirpath.m_device->m_root;
-        root->release_pathstr(m_filename);
-        root->release_pathstr(m_extension);
+        if (m_dirpath.m_device != nullptr)
+        {
+            npath::root_t* root = m_dirpath.m_device->m_root;
+            root->release_pathstr(m_filename);
+            root->release_pathstr(m_extension);
+        }
     }
 
     void filepath_t::clear()
