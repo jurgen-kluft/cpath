@@ -74,7 +74,7 @@ namespace ncore
             utf8::pcrune str;
             u32          len;
             m_strings->view_string(_str, str, len);
-            return crunes_t(str, 0, len, len);
+            return make_crunes(str, 0, len, len);
         }
 
         void root_t::to_string(string_t str, runes_t& out_str) const
@@ -82,7 +82,7 @@ namespace ncore
             utf8::pcrune r;
             u32          len;
             m_strings->view_string(str, r, len);
-            crunes_t cr(r, 0, len, len);
+            crunes_t cr = make_crunes(r, 0, len, len);
             nrunes::concatenate(out_str, cr);
         }
 
@@ -408,7 +408,7 @@ namespace ncore
             utf8::pcrune device_str;
             u32          device_strlen;
             m_root->m_strings->view_string(device->m_deviceName, device_str, device_strlen);
-            crunes_t device_str_crunes(device_str, 0, device_strlen, device_strlen);
+            crunes_t device_str_crunes = make_crunes(device_str, 0, device_strlen, device_strlen);
             // TODO append this device's path to the string
 
             // the rest of the devices are aliases and should be appending their paths
@@ -416,7 +416,7 @@ namespace ncore
             {
                 device = devices[i];
                 m_root->m_strings->view_string(device->m_deviceName, device_str, device_strlen);
-                device_str_crunes = crunes_t(device_str, 0, device_strlen, device_strlen);
+                device_str_crunes = make_crunes(device_str, 0, device_strlen, device_strlen);
                 // TODO append this device's path to the string
             }
         }

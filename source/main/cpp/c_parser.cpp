@@ -11,10 +11,10 @@ namespace ncore
         // -------------------------------------------------------------------------------------------
         // path parser
         //
-        bool parser_t::has_device() const { return !m_device.is_empty(); }
-        bool parser_t::has_path() const { return !m_path.is_empty(); }
-        bool parser_t::has_filename() const { return !m_filename.is_empty(); }
-        bool parser_t::has_extension() const { return !m_extension.is_empty(); }
+        bool parser_t::has_device() const { return !is_empty(m_device); }
+        bool parser_t::has_path() const { return !is_empty(m_path); }
+        bool parser_t::has_filename() const { return !is_empty(m_filename); }
+        bool parser_t::has_extension() const { return !is_empty(m_extension); }
 
         crunes_t parser_t::iterate_folder() const { return m_first_folder; }
 
@@ -82,7 +82,7 @@ namespace ncore
             folder = nrunes::selectAfterExclude(m_path, folder);
             nrunes::trimLeft(folder, slash);
             folder = nrunes::findSelectUntil(folder, slash);
-            return !folder.is_empty();
+            return !is_empty(folder);
         }
     } // namespace npath
 } // namespace ncore

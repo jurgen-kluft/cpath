@@ -26,7 +26,7 @@ UNITTEST_SUITE_BEGIN(pathparser)
             npath::parser_t parser;
 
             const char* str = "/Volumes/textfiles/docs/readme.txt";
-            crunes_t    p1(str);
+            crunes_t    p1 = make_crunes(str);
 
             parser.parse(p1, npath::parser_t::MACOS);
 
@@ -38,7 +38,7 @@ UNITTEST_SUITE_BEGIN(pathparser)
 
         UNITTEST_TEST(folders)
         {
-            crunes_t fullfilepath("/Volumes/textfiles/docs/readme.txt");
+            crunes_t fullfilepath = make_crunes("/Volumes/textfiles/docs/readme.txt");
 
             npath::parser_t parser;
             parser.parse(fullfilepath);
@@ -84,7 +84,7 @@ UNITTEST_SUITE_BEGIN(pathparser)
             npath::parser_t parser;
 
             const char* str = "TEST:\\textfiles\\docs\\readme.txt";
-            crunes_t    p1(str);
+            crunes_t    p1 = make_crunes(str);
 
             parser.parse(p1, npath::parser_t::WINDOWS);
 

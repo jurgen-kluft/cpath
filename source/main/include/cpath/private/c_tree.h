@@ -23,9 +23,9 @@ namespace ncore
             void exit();
             void reset();
 
-            typedef s8 (*item_cmp)(u32 const find_item, u32 const node_item, void const* user_data);
+            typedef s8 (*item_cmp)(u32 find_item, u32 node_item, void const* user_data);
 
-            node_t find(node_t root, u32 const find, item_cmp cmp, void const* user_data);
+            node_t find(node_t root, u32 const find, item_cmp cmp, void const* user_data) const;
             bool   insert(node_t& root, u32 const insert, item_cmp cmp, void const* user_data);
             bool   remove(node_t& root, u32 const remove, item_cmp cmp, void const* user_data);
 
@@ -38,9 +38,6 @@ namespace ncore
             memory_t        m_item_array;  // Virtual memory array of u32[]
             memory_t        m_node_array;  // Virtual memory array of nnode_t[]
             memory_t        m_color_array; // Red-black tree color array (bit array)
-            u32             m_free_head;   // Head of the free list
-            u32             m_free_index;  // Index of the free list
-            u32             m_count;       // Number of items in the tree
         };
     } // namespace npath
 } // namespace ncore
