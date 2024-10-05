@@ -64,12 +64,23 @@ namespace ncore
 
         u8* memory_t::allocate(u8*& ptr, u32 items, u32 item_size, u32 add_capacity_when_needed)
         {
+            reserve(ptr, items, item_size, add_capacity_when_needed);
+            return commit(ptr, items, item_size);
+        }
+
+        u8* memory_t::reserve(u8* ptr, u32 items, u32 item_size, u32 add_capacity_when_needed)
+        {
             if ((ptr + items * item_size) > (m_ptr + m_committed * item_size))
                 add_capacity(add_capacity_when_needed, item_size);
-
-            u8* const result = ptr;
-            ptr += items * item_size;
-            return result;
+            return ptr;
         }
+
+        u8* memory_t::commit(u8*& ptr, u32 items, u32 item_size)
+        {
+            u8* p = ptr;
+            ptr += (items * item_size);
+            return p;
+        }
+
     } // namespace npath
 } // namespace ncore

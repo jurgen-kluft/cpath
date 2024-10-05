@@ -18,6 +18,11 @@ namespace ncore
 
     namespace npath
     {
+        const s16 c_invalid_device = -1;
+        const u32 c_invalid_string = 0xFFFFFFFF;
+        const u32 c_invalid_node   = 0xFFFFFFFF;
+        const u32 c_invalid_folder = 0xFFFFFFFF;
+
         struct device_t;
         typedef s16 idevice_t;
 
@@ -32,14 +37,14 @@ namespace ncore
         {
             ifolder_t m_parent;  // folder parent (index into m_folder_array)
             string_t  m_name;    // folder name
-            node_t    m_files;   // Tree of files (tree root node)
             node_t    m_folders; // Tree of folders (tree root node)
+            node_t    m_files;   // Tree of files (tree root node)
             void      reset()
             {
-                m_parent  = 0;
-                m_name    = 0;
-                m_files   = 0;
-                m_folders = 0;
+                m_parent  = c_invalid_folder;
+                m_name    = c_invalid_string;
+                m_folders = c_invalid_node;
+                m_files   = c_invalid_node;
             }
         };
 
@@ -55,7 +60,6 @@ namespace ncore
             // -----------------------------------------------------------
             void      register_dirpath(crunes_t const& dirpath, node_t& out_path);
             void      register_filename(crunes_t const& namestr, string_t& filename, string_t& extension);
-            void      register_name(crunes_t const& namestr, string_t& name);
             bool      register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr);
             idevice_t register_device(string_t device);
             bool      has_device(const crunes_t& device_name);

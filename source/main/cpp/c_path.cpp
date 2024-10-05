@@ -20,8 +20,8 @@ namespace ncore
         {
             m_allocator = allocator;
 
-            m_max_devices = 64;
             m_num_devices = 1;
+            m_max_devices = 64;
             m_arr_devices = g_allocate_array<device_t*>(m_allocator, m_max_devices);
             for (s32 i = 0; i < m_max_devices; ++i)
             {
@@ -41,8 +41,7 @@ namespace ncore
         {
             for (s32 i = 0; i < m_max_devices; ++i)
             {
-                if (m_arr_devices[i] != nullptr)
-                    g_destruct(m_allocator, m_arr_devices[i]);
+                g_destruct(m_allocator, m_arr_devices[i]);
             }
             g_deallocate_array(m_allocator, m_arr_devices);
             m_num_devices = 0;
@@ -57,15 +56,17 @@ namespace ncore
 
         string_t root_t::find_string(const crunes_t& namestr) const
         {
-            string_t name = 0;
-
+            string_t name = m_strings->find(namestr);
             return name;
         }
 
         string_t root_t::find_or_insert_string(crunes_t const& namestr)
         {
-            string_t name = 0;
-
+            string_t name = m_strings->find(namestr);
+            if (name == c_invalid_string)
+            {
+                name = m_strings->insert(namestr);
+            }
             return name;
         }
 
@@ -94,12 +95,6 @@ namespace ncore
 
         s32 root_t::compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
 
-        void root_t::register_name(crunes_t const& namestr, string_t& outname)
-        {
-            // TODO register this string at m_strings
-            outname = 0;
-        }
-
         void root_t::register_fulldirpath(crunes_t const& fulldirpath, string_t& outdevicename, node_t& outnode)
         {
             npath::parser_t parser;
@@ -108,7 +103,7 @@ namespace ncore
             outdevicename = 0;
             if (parser.has_device())
             {
-                outdevicename = this->find_or_insert_string(parser.m_device);
+                outdevicename = find_or_insert_string(parser.m_device);
             }
 
             outnode = 0;
@@ -118,8 +113,8 @@ namespace ncore
                 node_t   parent_node = 0;
                 do
                 {
-                    string_t folder_pathstr = this->find_or_insert_string(folder);
-                    node_t   folder_node    = this->find_or_insert_path(parent_node, folder_pathstr);
+                    string_t folder_pathstr = find_or_insert_string(folder);
+                    node_t   folder_node    = find_or_insert_path(parent_node, folder_pathstr);
                     parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
@@ -138,8 +133,8 @@ namespace ncore
                 node_t   parent_node = 0;
                 do
                 {
-                    string_t folder_pathstr = this->find_or_insert_string(folder);
-                    node_t   folder_node    = this->find_or_insert_path(parent_node, folder_pathstr);
+                    string_t folder_pathstr = find_or_insert_string(folder);
+                    node_t   folder_node    = find_or_insert_path(parent_node, folder_pathstr);
                     parent_node             = folder_node;
                 } while (parser.next_folder(folder));
                 outnode = parent_node;
@@ -151,8 +146,8 @@ namespace ncore
             crunes_t filename_str   = namestr;
             filename_str            = nrunes::findLastSelectUntil(filename_str, '.');
             crunes_t extension_str  = nrunes::selectAfterExclude(namestr, filename_str);
-            string_t filename_name  = this->find_or_insert_string(filename_str);
-            string_t extension_name = this->find_or_insert_string(extension_str);
+            string_t filename_name  = find_or_insert_string(filename_str);
+            string_t extension_name = find_or_insert_string(extension_str);
             out_filename            = filename_name;
             out_extension           = extension_name;
         }
@@ -176,13 +171,13 @@ namespace ncore
             out_filename = 0;
             if (parser.has_filename())
             {
-                register_name(parser.m_filename, out_filename);
+                out_filename = find_or_insert_string(parser.m_filename);
             }
 
             out_extension = 0;
             if (parser.has_extension())
             {
-                register_name(parser.m_extension, out_extension);
+                out_extension = find_or_insert_string(parser.m_extension);
             }
         }
 
@@ -304,9 +299,7 @@ namespace ncore
 
         bool root_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
         {
-            string_t aliasname;
-            register_name(aliasstr, aliasname);
-
+            string_t aliasname = find_or_insert_string(aliasstr);
             string_t devname = 0;
             node_t   devpath = 0;
             register_fulldirpath(devpathstr, devname, devpath);

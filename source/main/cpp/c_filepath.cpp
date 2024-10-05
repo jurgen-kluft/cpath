@@ -110,8 +110,7 @@ namespace ncore
     void filepath_t::setExtension(crunes_t const& extensionstr)
     {
         npath::root_t*  root = m_dirpath.m_device->m_root;
-        npath::string_t extension;
-        root->register_name(extensionstr, extension);
+        npath::string_t extension = root->find_or_insert_string(extensionstr);
         setExtension(extension);
     }
 

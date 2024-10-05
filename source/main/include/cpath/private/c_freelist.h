@@ -9,10 +9,8 @@
 
 namespace ncore
 {
-    class alloc_t;
     namespace npath
     {
-
         void*        freelist_alloc(u8* memory, u32 _item_size, u32& _free_head, u32& _free_index);
         void         freelist_free(void* item, u8* memory, u32 _item_size, u32& _free_head);
         inline bool  freelist_isfull(u32 _free_head, u32 _free_index, u32 _max_index) { return _free_head == 0xFFFFFFFF && _free_index >= _max_index; }
