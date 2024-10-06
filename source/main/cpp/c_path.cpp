@@ -20,13 +20,15 @@ namespace ncore
         {
             m_allocator = allocator;
 
-            m_num_devices = 1;
-            m_max_devices = 64;
-            m_arr_devices = g_allocate_array<device_t*>(m_allocator, m_max_devices);
-            for (s32 i = 0; i < m_max_devices; ++i)
-            {
-                m_arr_devices[i] = g_construct<device_t>(m_allocator);
-            }
+            m_devices = g_construct<devices_t>(m_allocator);
+
+            m_devices->m_max_devices = 62;
+            m_devices->m_arr_devices = g_allocate_array_and_memset<device_t*>(m_allocator, m_devices->m_max_devices + 2, 0);
+            for (s32 i = 0; i < m_devices->m_max_devices; ++i)
+                m_devices->m_arr_devices[i] = g_construct<device_t>(m_allocator);
+            m_devices->m_device_nodes       = g_allocate_array<ntree32::tree_t::nnode_t>(m_allocator, m_devices->m_max_devices + 2);
+            m_devices->m_device_node_colors = g_allocate_array<u8>(m_allocator, (m_devices->m_max_devices + 2 + 31) >> 5);
+            ntree32::setup_tree(m_devices->m_device_tree, m_devices->m_max_devices, m_devices->m_device_nodes, m_devices->m_device_node_colors);
 
             m_strings = g_construct<strings_t>(m_allocator);
             m_strings->init(max_items);
@@ -39,12 +41,12 @@ namespace ncore
 
         void root_t::exit(alloc_t* allocator)
         {
-            for (s32 i = 0; i < m_max_devices; ++i)
-            {
-                g_destruct(m_allocator, m_arr_devices[i]);
-            }
-            g_deallocate_array(m_allocator, m_arr_devices);
-            m_num_devices = 0;
+            for (s32 i = 0; i < m_devices->m_max_devices; ++i)
+                g_destruct(m_allocator, m_devices->m_arr_devices[i]);
+            g_deallocate_array(m_allocator, m_devices->m_arr_devices);
+            g_deallocate_array(m_allocator, m_devices->m_device_nodes);
+            g_deallocate_array(m_allocator, m_devices->m_device_node_colors);
+            ntree32::teardown_tree(m_devices->m_device_tree);
 
             m_folders.exit();
             m_nodes->exit();
@@ -181,34 +183,41 @@ namespace ncore
             }
         }
 
+        static s8 s_device_compare(u32 find_item, u32 node_item, void const* user_data)
+        {
+            devices_t const* data   = (devices_t const*)user_data;
+            device_t*        device = data->m_arr_devices[node_item];
+            if (device->m_deviceName == find_item)
+                return 0;
+            return find_item < device->m_deviceName ? -1 : 1;
+        }
+
         idevice_t root_t::find_device(string_t devicename) const
         {
-            for (idevice_t i = 0; i < m_num_devices; ++i)
+            ntree32::node_t found = c_invalid_node;
+            if (ntree32::find(m_devices->m_device_tree, m_devices->m_device_tree_root, devicename, s_device_compare, m_devices, found))
             {
-                if (m_arr_devices[i]->m_deviceName == devicename)
-                {
-                    return i;
-                }
+                return (idevice_t)found;
             }
-            return -1;
+            return c_invalid_device;
         }
 
         idevice_t root_t::register_device(string_t devicename)
         {
             idevice_t device = find_device(devicename);
-            if (device == -1)
+            if (device == c_invalid_device)
             {
-                if (m_num_devices < 64)
+                ntree32::node_t inserted = ntree32::c_invalid_node;
+                if (ntree32::insert(m_devices->m_device_tree, m_devices->m_device_tree_root, devicename, s_device_compare, m_devices, inserted))
                 {
-                    m_arr_devices[m_num_devices]->m_root       = this;
-                    m_arr_devices[m_num_devices]->m_alias      = 0;
-                    m_arr_devices[m_num_devices]->m_deviceName = devicename;
-                    m_arr_devices[m_num_devices]->m_devicePath = 0;
-                    m_arr_devices[m_num_devices]->m_redirector = 0;
-                    m_arr_devices[m_num_devices]->m_userdata1  = 0;
-                    m_arr_devices[m_num_devices]->m_userdata2  = 0;
-                    device                                     = m_num_devices;
-                    m_num_devices++;
+                    m_devices->m_arr_devices[inserted]->m_root       = this;
+                    m_devices->m_arr_devices[inserted]->m_alias      = 0;
+                    m_devices->m_arr_devices[inserted]->m_deviceName = devicename;
+                    m_devices->m_arr_devices[inserted]->m_devicePath = 0;
+                    m_devices->m_arr_devices[inserted]->m_redirector = 0;
+                    m_devices->m_arr_devices[inserted]->m_userdata1  = 0;
+                    m_devices->m_arr_devices[inserted]->m_userdata2  = 0;
+                    return (idevice_t)inserted;
                 }
             }
             return device;
@@ -217,18 +226,18 @@ namespace ncore
         device_t* root_t::get_device(string_t devicename) const
         {
             idevice_t const device = find_device(devicename);
-            if (device != -1)
+            if (device != c_invalid_device)
             {
-                return m_arr_devices[device];
+                return m_devices->m_arr_devices[device];
             }
             return nullptr;
         }
 
         device_t* root_t::get_device(idevice_t index) const
         {
-            if (index == -1)
+            if (index == c_invalid_device)
                 return nullptr;
-            return m_arr_devices[index];
+            return m_devices->m_arr_devices[index];
         }
 
         string_t  root_t::attach_pathstr(string_t name) { return name; }
@@ -300,8 +309,8 @@ namespace ncore
         bool root_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
         {
             string_t aliasname = find_or_insert_string(aliasstr);
-            string_t devname = 0;
-            node_t   devpath = 0;
+            string_t devname   = 0;
+            node_t   devpath   = 0;
             register_fulldirpath(devpathstr, devname, devpath);
 
             idevice_t const device = register_device(aliasname);
@@ -351,7 +360,7 @@ namespace ncore
             m_root->attach_pathstr(m_devicePath);
             if (m_redirector != -1)
             {
-                device_t* redirector = m_root->m_arr_devices[m_redirector];
+                device_t* redirector = m_root->m_devices->m_arr_devices[m_redirector];
                 redirector->attach();
             }
             return this;
@@ -389,7 +398,7 @@ namespace ncore
             device_t const* devices[32];
             do
             {
-                device_t* device             = m_root->m_arr_devices[device_index];
+                device_t* device             = m_root->m_devices->m_arr_devices[device_index];
                 devices[i++]                 = device;
                 idevice_t const device_index = device->m_redirector;
             } while (device_index > 0 && i < 32);
@@ -421,7 +430,7 @@ namespace ncore
             device_t const* devices[32];
             do
             {
-                device_t* device             = m_root->m_arr_devices[device_index];
+                device_t* device             = m_root->m_devices->m_arr_devices[device_index];
                 devices[i++]                 = device;
                 idevice_t const device_index = device->m_redirector;
             } while (device_index > 0 && i < 32);

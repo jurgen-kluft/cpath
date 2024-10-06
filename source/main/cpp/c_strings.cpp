@@ -25,7 +25,6 @@ namespace ncore
             return hash;
         }
 
-
         strings_t::strings_t() : m_data_buffer(), m_data_ptr(nullptr), m_str_array(), m_str_tree(), m_str_root(0) {}
 
         void strings_t::init(u32 max_items)

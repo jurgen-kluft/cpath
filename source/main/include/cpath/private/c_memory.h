@@ -25,7 +25,7 @@ namespace ncore
             // Allocate = Reserve & Commit
             u8* allocate(u8*& ptr, u32 items, u32 item_size = 1, u32 add_capacity_when_needed = 1024 * 1024);
 
-            // Reserve -> Commit or Release
+            // Reserve -> Commit
             u8* reserve(u8* ptr, u32 items, u32 item_size = 1, u32 add_capacity_when_needed = 1024 * 1024);
             u8* commit(u8*& ptr, u32 items, u32 item_size = 1);
         };

@@ -106,12 +106,20 @@ namespace ncore
             u32                  m_max_path_objects;
             char                 m_default_slash;
             alloc_t*             m_allocator;
-            s32                  m_num_devices;
-            s32                  m_max_devices;
-            device_t**           m_arr_devices;
             strings_t*           m_strings;
             tree_t*              m_nodes;
             freelist_t<folder_t> m_folders;
+            devices_t*           m_devices;
+        };
+
+        struct devices_t
+        {
+            device_t**                m_arr_devices;
+            ntree32::tree_t::nnode_t* m_device_nodes;
+            u8*                       m_device_node_colors;
+            ntree32::tree_t           m_device_tree;
+            node_t                    m_device_tree_root;
+            s32                       m_max_devices;
         };
 
         struct device_t
