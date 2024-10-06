@@ -28,7 +28,7 @@ namespace ncore
                 m_devices->m_arr_devices[i] = g_construct<device_t>(m_allocator);
             m_devices->m_device_nodes       = g_allocate_array<ntree32::tree_t::nnode_t>(m_allocator, m_devices->m_max_devices + 2);
             m_devices->m_device_node_colors = g_allocate_array<u8>(m_allocator, (m_devices->m_max_devices + 2 + 31) >> 5);
-            ntree32::setup_tree(m_devices->m_device_tree, m_devices->m_max_devices, m_devices->m_device_nodes, m_devices->m_device_node_colors);
+            ntree32::setup_tree(m_devices->m_device_tree, m_devices->m_device_nodes, m_devices->m_device_node_colors);
 
             m_strings = g_construct<strings_t>(m_allocator);
             m_strings->init(max_items);
@@ -207,8 +207,9 @@ namespace ncore
             idevice_t device = find_device(devicename);
             if (device == c_invalid_device)
             {
+                ntree32::node_t temp = m_devices->m_max_devices + 1;
                 ntree32::node_t inserted = ntree32::c_invalid_node;
-                if (ntree32::insert(m_devices->m_device_tree, m_devices->m_device_tree_root, devicename, s_device_compare, m_devices, inserted))
+                if (ntree32::insert(m_devices->m_device_tree, temp, m_devices->m_device_tree_root, devicename, s_device_compare, m_devices, inserted))
                 {
                     m_devices->m_arr_devices[inserted]->m_root       = this;
                     m_devices->m_arr_devices[inserted]->m_alias      = 0;

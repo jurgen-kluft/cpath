@@ -34,6 +34,7 @@ namespace ncore
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
         protected:
+            s64             m_size;
             ntree32::tree_t m_tree;
             memory_t        m_item_array;  // Virtual memory array of u32[]
             memory_t        m_node_array;  // Virtual memory array of nnode_t[]
