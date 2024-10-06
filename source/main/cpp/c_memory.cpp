@@ -5,6 +5,8 @@ namespace ncore
 {
     namespace npath
     {
+        const u32 c_capacity_bias = 4;
+
         void memory_t::init(u32 initial_capacity, u32 max_capacity, u32 item_size)
         {
             u32 const page_size = nvmem::page_size();
@@ -62,16 +64,22 @@ namespace ncore
             }
         }
 
-        u8* memory_t::allocate(u8*& ptr, u32 items, u32 item_size, u32 add_capacity_when_needed)
+        void memory_t::ensure_capacity(u32 index, u32 item_size, u32 add_capacity_when_needed)
         {
-            reserve(ptr, items, item_size, add_capacity_when_needed);
+            if ((index + c_capacity_bias) >= m_committed)
+                add_capacity((index + c_capacity_bias) - m_committed, item_size);
+        }
+
+        u8* memory_t::allocate(u8*& ptr, u32 items, u32 item_size)
+        {
+            reserve(ptr, items, item_size);
             return commit(ptr, items, item_size);
         }
 
-        u8* memory_t::reserve(u8* ptr, u32 items, u32 item_size, u32 add_capacity_when_needed)
+        u8* memory_t::reserve(u8* ptr, u32 items, u32 item_size)
         {
             if ((ptr + items * item_size) > (m_ptr + m_committed * item_size))
-                add_capacity(add_capacity_when_needed, item_size);
+                add_capacity(items + c_capacity_bias, item_size);
             return ptr;
         }
 

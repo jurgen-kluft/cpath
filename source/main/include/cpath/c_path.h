@@ -10,7 +10,7 @@
 #include "cbase/c_runes.h"
 #include "cbase/c_tree32.h"
 
-#include "cpath/private/c_freelist.h"
+#include "cpath/private/c_memory.h"
 #include "cpath/c_filepath.h"
 
 namespace ncore
@@ -63,7 +63,7 @@ namespace ncore
 
         struct root_t
         {
-            void init(alloc_t* allocator, u32 cap = 1024 * 1024);
+            void init(alloc_t* allocator, u32 max_items = 1024 * 1024 * 1024);
             void exit(alloc_t* allocator);
 
             // -----------------------------------------------------------
@@ -107,22 +107,22 @@ namespace ncore
             s32      compare_str(string_t left, string_t right) const;
             s32      compare_str(folder_t* left, folder_t* right) const { return compare_str(left->m_name, right->m_name); }
 
-            node_t get_parent_path(node_t path);
-            node_t get_first_childpath(node_t path);
-            node_t get_next_childpath(node_t path);
+            node_t get_parent_path(node_t path) const;
+            node_t get_first_childpath(node_t path) const;
+            node_t get_next_childpath(node_t path) const;
             node_t find_or_insert_path(node_t parent, string_t str);
             s32    get_path_strlen(node_t path) const;
             bool   remove_path(node_t item);
 
             // -----------------------------------------------------------
             //
-            u32                  m_max_path_objects;
-            char                 m_default_slash;
-            alloc_t*             m_allocator;
-            strings_t*           m_strings;
-            tree_t*              m_nodes;
-            freelist_t<folder_t> m_folders;
-            devices_t*           m_devices;
+            u32                 m_max_path_objects;
+            char                m_default_slash;
+            alloc_t*            m_allocator;
+            strings_t*          m_strings;
+            tree_t*             m_folder_nodes;
+            objects_t<folder_t> m_folders;
+            devices_t*          m_devices;
         };
 
         struct device_t

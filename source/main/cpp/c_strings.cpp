@@ -13,7 +13,6 @@ namespace ncore
 {
     namespace npath
     {
-
         static u32 hash(utf8::pcrune str, utf8::pcrune end)
         {
             u32 hash = 0;
@@ -25,56 +24,58 @@ namespace ncore
             return hash;
         }
 
-        strings_t::strings_t() : m_data_buffer(), m_data_ptr(nullptr), m_str_array(), m_str_tree(), m_str_root(0) {}
+        strings_t::data_t::data_t() : m_data_buffer(), m_data_ptr(nullptr), m_str_buffer(),  m_str_tree(), m_str_root(0) {}
+
+        strings_t::strings_t() : m_data() {}
 
         void strings_t::init(u32 max_items)
         {
-            m_data_buffer.init(max_items, max_items * 32, sizeof(u8));
-            m_str_array.init(max_items);
-            m_str_tree.init(max_items);
+            m_data.m_data_buffer.init(max_items, max_items * 32, sizeof(u8));
+            m_data.m_str_buffer.init(max_items, max_items * 32, sizeof(str_t));
+            m_data.m_str_tree.init(max_items);
 
-            m_data_ptr = m_data_buffer.m_ptr;
-            m_str_root = 0;
+            m_data.m_data_ptr = m_data.m_data_buffer.m_ptr;
+            m_data.m_str_root = 0;
         }
 
         void strings_t::exit()
         {
-            m_str_tree.exit();
-            m_str_array.exit();
-            m_data_buffer.exit();
-            m_data_ptr = nullptr;
+            m_data.m_str_tree.exit();
+            m_data.m_str_buffer.exit();
+            m_data.m_data_buffer.exit();
+            m_data.m_data_ptr = nullptr;
         }
 
         string_t strings_t::attach(string_t node) { return node; }
         string_t strings_t::detach(string_t node) { return 0; }
+
+        static s8 s_compare_str_to_node(u32 const _str, u32 const _node, void const* user_data)
+        {
+            strings_t const*        strings  = (strings_t const*)user_data;
+            strings_t::str_t const* str      = strings->index_to_object(_str);
+            strings_t::str_t const* node_str = strings->index_to_object(_node);
+            return strings->compare_str(str, node_str);
+        }
 
         string_t strings_t::find(crunes_t const& _str)
         {
             utf8::pcrune      str8 = _str.m_utf8 + _str.m_str;
             utf8::pcrune      src8 = str8;
             utf8::pcrune      end8 = _str.m_utf8 + _str.m_end;
-            utf8::prune const dst  = (utf8::prune)m_data_buffer.reserve(m_data_ptr, (end8 - str8) + 1, sizeof(u8), 1024 * 1024);
+            utf8::prune const dst  = (utf8::prune)m_data.m_data_buffer.reserve(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
             utf8::prune       dst8 = dst;
             while (str8 < end8)
                 *dst8++ = *src8++;
             dst->r = 0;
 
-            object_t* str       = m_str_array.alloc();
-            u32 const str_index = object_to_index(str);
-            str->m_str          = dst;
-            str->m_hash         = hash(str8, end8);
-            str->m_len          = (end8 - str8);
+            str_t* const str = (str_t*)m_data.m_str_buffer.ptr_of(m_data.m_str_tree.find_slot(), sizeof(str_t));
+            str->m_str       = dst;
+            str->m_hash      = hash(str8, end8);
+            str->m_len       = (end8 - str8);
+            u32 const istr   = m_data.m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
-            node_t node = m_str_tree.find(m_str_root, str_index, compare_str, this);
-            if (node != 0)
-            {
-                m_str_array.free(str);
-                u32 const index = m_str_tree.get_item(node);
-                return index;
-            }
-
-            m_str_array.free(str);
-            return c_invalid_string;
+            node_t node = m_data.m_str_tree.find(m_data.m_str_root, istr, s_compare_str_to_node, this);
+            return node;
         }
 
         string_t strings_t::insert(crunes_t const& _str)
@@ -82,32 +83,32 @@ namespace ncore
             utf8::pcrune      str8 = _str.m_utf8 + _str.m_str;
             utf8::pcrune      src8 = str8;
             utf8::pcrune      end8 = _str.m_utf8 + _str.m_end;
-            utf8::prune const dst  = (utf8::prune)m_data_buffer.reserve(m_data_ptr, (end8 - str8) + 1, sizeof(u8), 1024 * 1024);
+            utf8::prune const dst  = (utf8::prune)m_data.m_data_buffer.reserve(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
             utf8::prune       dst8 = dst;
             while (str8 < end8)
                 *dst8++ = *src8++;
             dst->r = 0;
 
-            object_t* str       = m_str_array.alloc();
-            u32 const str_index = object_to_index(str);
-            str->m_str          = dst;
-            str->m_hash         = hash(str8, end8);
-            str->m_len          = (end8 - str8);
+            str_t* const str = (str_t*)m_data.m_str_buffer.ptr_of(m_data.m_str_tree.find_slot(), sizeof(str_t));
+            str->m_str       = dst;
+            str->m_hash      = hash(str8, end8);
+            str->m_len       = (end8 - str8);
+            u32 const istr   = m_data.m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
-            node_t node = m_str_tree.find(m_str_root, str_index, compare_str, this);
-            if (node != 0)
+            // TODO, check if we need to grow m_str_buffer
+
+            node_t inserted_or_found;
+            if (m_data.m_str_tree.insert(m_data.m_str_root, istr, s_compare_str_to_node, this, inserted_or_found))
             {
-                m_str_array.free(str);
-                u32 const index = m_str_tree.get_item(node);
-                return index;
+                m_data.m_data_buffer.commit(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
+                str_t* dst = index_to_object(inserted_or_found);
+                *dst       = *str;
             }
 
-            m_data_buffer.commit(m_data_ptr, (end8 - str8) + 1, sizeof(u8));
-            m_str_tree.insert(m_str_root, str_index, compare_str, this);
-            return str_index;
+            return inserted_or_found;
         }
 
-        s8 strings_t::compare_str(object_t const* strA, object_t const* strB) const
+        s8 strings_t::compare_str(str_t const* strA, str_t const* strB) const
         {
             if (strA->m_hash != strB->m_hash)
                 return strA->m_hash < strB->m_hash ? -1 : 1;
@@ -131,9 +132,9 @@ namespace ncore
 
         s8 strings_t::compare_str(u32 const find_item, u32 const node_item, void const* user_data)
         {
-            strings_t const*           strings  = (strings_t const*)user_data;
-            strings_t::object_t const* find_str = strings->index_to_object(find_item);
-            strings_t::object_t const* node_str = strings->index_to_object(node_item);
+            strings_t const*        strings  = (strings_t const*)user_data;
+            strings_t::str_t const* find_str = strings->index_to_object(find_item);
+            strings_t::str_t const* node_str = strings->index_to_object(node_item);
             return strings->compare_str(find_str, node_str);
         }
 
@@ -141,15 +142,15 @@ namespace ncore
 
         void strings_t::view_string(string_t _str, utf8::pcrune& out_str, u32& out_len) const
         {
-            object_t* str = m_str_array.ptr_of(_str);
-            out_str       = str->m_str;
-            out_len       = str->m_len;
+            str_t* str = index_to_object(_str);
+            out_str    = str->m_str;
+            out_len    = str->m_len;
         }
 
         s8 strings_t::compare(string_t left, string_t right) const
         {
-            object_t const* left_str  = index_to_object(left);
-            object_t const* right_str = index_to_object(right);
+            str_t const* left_str  = index_to_object(left);
+            str_t const* right_str = index_to_object(right);
             return compare_str(left_str, right_str);
         }
 

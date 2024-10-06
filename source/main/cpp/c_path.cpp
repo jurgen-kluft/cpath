@@ -22,21 +22,24 @@ namespace ncore
 
             m_devices = g_construct<devices_t>(m_allocator);
 
-            m_devices->m_max_devices = 62;
-            m_devices->m_arr_devices = g_allocate_array_and_memset<device_t*>(m_allocator, m_devices->m_max_devices + 2, 0);
+            s32 const c_extra_devices = 2; // For 'find' and 'temp' slots
+            m_devices->m_max_devices  = 62;
+            m_devices->m_arr_devices  = g_allocate_array<device_t*>(m_allocator, m_devices->m_max_devices + c_extra_devices);
             for (s32 i = 0; i < m_devices->m_max_devices; ++i)
                 m_devices->m_arr_devices[i] = g_construct<device_t>(m_allocator);
-            m_devices->m_device_nodes       = g_allocate_array<ntree32::tree_t::nnode_t>(m_allocator, m_devices->m_max_devices + 2);
-            m_devices->m_device_node_colors = g_allocate_array<u8>(m_allocator, (m_devices->m_max_devices + 2 + 31) >> 5);
+            for (s32 i = m_devices->m_max_devices; i < m_devices->m_max_devices + c_extra_devices; ++i)
+                m_devices->m_arr_devices[i] = nullptr;
+            m_devices->m_device_nodes       = g_allocate_array<ntree32::tree_t::nnode_t>(m_allocator, m_devices->m_max_devices + c_extra_devices);
+            m_devices->m_device_node_colors = g_allocate_array<u8>(m_allocator, (m_devices->m_max_devices + c_extra_devices + 31) >> 5);
             ntree32::setup_tree(m_devices->m_device_tree, m_devices->m_device_nodes, m_devices->m_device_node_colors);
 
             m_strings = g_construct<strings_t>(m_allocator);
             m_strings->init(max_items);
 
-            m_nodes = g_construct<tree_t>(m_allocator);
-            m_nodes->init();
+            m_folder_nodes = g_construct<tree_t>(m_allocator);
+            m_folder_nodes->init();
 
-            m_folders.init();
+            m_folders.init(max_items / 1024, max_items);
         }
 
         void root_t::exit(alloc_t* allocator)
@@ -49,10 +52,10 @@ namespace ncore
             ntree32::teardown_tree(m_devices->m_device_tree);
 
             m_folders.exit();
-            m_nodes->exit();
+            m_folder_nodes->exit();
             m_strings->exit();
 
-            g_destruct(m_allocator, m_nodes);
+            g_destruct(m_allocator, m_folder_nodes);
             g_destruct(m_allocator, m_strings);
         }
 
@@ -132,7 +135,7 @@ namespace ncore
             if (parser.has_path())
             {
                 crunes_t folder      = parser.iterate_folder();
-                node_t   parent_node = 0;
+                node_t   parent_node = c_invalid_node;
                 do
                 {
                     string_t folder_pathstr = find_or_insert_string(folder);
@@ -159,8 +162,8 @@ namespace ncore
             npath::parser_t parser;
             parser.parse(fullfilepath);
 
-            out_device = 0;
-            out_path   = 0;
+            out_device = c_invalid_device;
+            out_path   = c_invalid_node;
             if (parser.has_device())
             {
                 register_fulldirpath(parser.deviceAndPath(), out_device, out_path);
@@ -170,13 +173,13 @@ namespace ncore
                 register_dirpath(parser.path(), out_path);
             }
 
-            out_filename = 0;
+            out_filename = c_invalid_string;
             if (parser.has_filename())
             {
                 out_filename = find_or_insert_string(parser.m_filename);
             }
 
-            out_extension = 0;
+            out_extension = c_invalid_string;
             if (parser.has_extension())
             {
                 out_extension = find_or_insert_string(parser.m_extension);
@@ -207,15 +210,15 @@ namespace ncore
             idevice_t device = find_device(devicename);
             if (device == c_invalid_device)
             {
-                ntree32::node_t temp = m_devices->m_max_devices + 1;
+                ntree32::node_t temp     = m_devices->m_max_devices + 1;
                 ntree32::node_t inserted = ntree32::c_invalid_node;
                 if (ntree32::insert(m_devices->m_device_tree, temp, m_devices->m_device_tree_root, devicename, s_device_compare, m_devices, inserted))
                 {
                     m_devices->m_arr_devices[inserted]->m_root       = this;
-                    m_devices->m_arr_devices[inserted]->m_alias      = 0;
+                    m_devices->m_arr_devices[inserted]->m_alias      = c_invalid_string;
                     m_devices->m_arr_devices[inserted]->m_deviceName = devicename;
-                    m_devices->m_arr_devices[inserted]->m_devicePath = 0;
-                    m_devices->m_arr_devices[inserted]->m_redirector = 0;
+                    m_devices->m_arr_devices[inserted]->m_devicePath = c_invalid_node;
+                    m_devices->m_arr_devices[inserted]->m_redirector = c_invalid_device;
                     m_devices->m_arr_devices[inserted]->m_userdata1  = 0;
                     m_devices->m_arr_devices[inserted]->m_userdata2  = 0;
                     return (idevice_t)inserted;
@@ -245,10 +248,10 @@ namespace ncore
         node_t    root_t::attach_pathnode(node_t path) { return path; }
         idevice_t root_t::attach_pathdevice(idevice_t idevice) { return idevice; }
         device_t* root_t::attach_pathdevice(device_t* device) { return device; }
-        string_t  root_t::release_pathstr(string_t name) { return 0; }
-        node_t    root_t::release_pathnode(node_t path) { return 0; }
-        idevice_t root_t::release_pathdevice(idevice_t idevice) { return 0; }
-        idevice_t root_t::release_pathdevice(device_t* device) { return 0; }
+        string_t  root_t::release_pathstr(string_t name) { return c_invalid_string; }
+        node_t    root_t::release_pathnode(node_t path) { return c_invalid_node; }
+        idevice_t root_t::release_pathdevice(idevice_t idevice) { return c_invalid_device; }
+        idevice_t root_t::release_pathdevice(device_t* device) { return c_invalid_device; }
 
         device_t* root_t::get_pathdevice(dirpath_t const& dirpath) { return dirpath.m_device; }
         device_t* root_t::get_pathdevice(filepath_t const& filepath) { return filepath.m_dirpath.m_device; }
@@ -299,10 +302,10 @@ namespace ncore
         bool root_t::has_device(const crunes_t& device_name)
         {
             string_t devname = find_string(device_name);
-            if (devname != 0)
+            if (devname != c_invalid_string)
             {
                 idevice_t const dev = find_device(devname);
-                return dev >= 0;
+                return dev != c_invalid_device;
             }
             return false;
         }
@@ -310,8 +313,8 @@ namespace ncore
         bool root_t::register_alias(const crunes_t& aliasstr, const crunes_t& devpathstr)
         {
             string_t aliasname = find_or_insert_string(aliasstr);
-            string_t devname   = 0;
-            node_t   devpath   = 0;
+            string_t devname   = c_invalid_string;
+            node_t   devpath   = c_invalid_node;
             register_fulldirpath(devpathstr, devname, devpath);
 
             idevice_t const device = register_device(aliasname);
@@ -331,10 +334,10 @@ namespace ncore
         void device_t::init(root_t* owner)
         {
             m_root       = owner;
-            m_alias      = 0;
-            m_deviceName = 0;
-            m_devicePath = 0;
-            m_redirector = 0;
+            m_alias      = c_invalid_string;
+            m_deviceName = c_invalid_string;
+            m_devicePath = c_invalid_node;
+            m_redirector = c_invalid_device;
             m_userdata1  = 0;
             m_userdata2  = 0;
         }
@@ -372,9 +375,9 @@ namespace ncore
             m_root->release_pathstr(m_alias);
             m_root->release_pathstr(m_deviceName);
             m_root->release_pathstr(m_devicePath);
-            m_alias      = 0;
-            m_deviceName = 0;
-            m_devicePath = 0;
+            m_alias      = c_invalid_string;
+            m_deviceName = c_invalid_string;
+            m_devicePath = c_invalid_node;
 
             m_root->release_pathdevice(m_redirector);
             m_userdata1 = 0;
@@ -402,7 +405,7 @@ namespace ncore
                 device_t* device             = m_root->m_devices->m_arr_devices[device_index];
                 devices[i++]                 = device;
                 idevice_t const device_index = device->m_redirector;
-            } while (device_index > 0 && i < 32);
+            } while (device_index != c_invalid_device && i < 32);
 
             device_t const* device = devices[--i];
 
@@ -426,17 +429,17 @@ namespace ncore
 
         s32 device_t::to_strlen() const
         {
-            s32             i            = 0;
-            idevice_t       device_index = m_device_index;
-            device_t const* devices[32];
+            s32       i            = 0;
+            idevice_t device_index = m_device_index;
+            idevice_t devices[32];
             do
             {
-                device_t* device             = m_root->m_devices->m_arr_devices[device_index];
-                devices[i++]                 = device;
-                idevice_t const device_index = device->m_redirector;
-            } while (device_index > 0 && i < 32);
+                device_t* device = m_root->m_devices->m_arr_devices[device_index];
+                devices[i++]     = device_index;
+                device_index     = device->m_redirector;
+            } while (device_index != c_invalid_device && i < 32);
 
-            device_t const* device = devices[--i];
+            device_t const* device = m_root->m_devices->m_arr_devices[devices[--i]];
 
             // should be the root device (has filedevice), so first emit the device name.
             // this device should not have any device path.
@@ -447,25 +450,65 @@ namespace ncore
             // the rest of the devices are aliases and should be appending their paths
             while (--i >= 0)
             {
-                device = devices[i];
+                device = m_root->m_devices->m_arr_devices[devices[i]];
                 len += m_root->m_strings->get_len(device->m_devicePath);
                 len += 1; // for the "\"
             }
             return len;
         }
 
-        node_t root_t::find_or_insert_path(node_t parent, string_t str)
+        static s8 s_compare_str_with_folder(u32 find_str, u32 _node_folder, void const* user_data)
         {
-            // parent node is a folder_t*, so we need to get the folder_t* and then
-            // use the tree of folders to see if there is a folder_t* with the same name as str.
-            // If there is no such folder, then we need to create a new folder_t* and insert it into the tree of folders of parent.
-            return 0;
+            root_t const* const   root        = (root_t const*)user_data;
+            folder_t const* const node_folder = root->m_folders.ptr_of(_node_folder);
+            return root->m_strings->compare(find_str, node_folder->m_name);
         }
 
-        node_t root_t::get_parent_path(node_t path)
+        static s8 s_compare_folder_with_folder(u32 _find_folder, u32 _node_folder, void const* user_data)
         {
-            // get folder_t*, then return the parent
-            return 0;
+            root_t const* const   root        = (root_t const*)user_data;
+            folder_t const* const find_folder = root->m_folders.ptr_of(_find_folder);
+            folder_t const* const node_folder = root->m_folders.ptr_of(_node_folder);
+            return root->m_strings->compare(find_folder->m_name, node_folder->m_name);
+        }
+
+        node_t root_t::find_or_insert_path(node_t parent, string_t str)
+        {
+            // Parent node is a folder_t*, so we need to get the folder_t* and then
+            // use the tree of folders to see if there is a folder_t* that holds 'str'.
+            // If there is no such folder, then we need to create a new folder_t* and
+            // insert it into the tree of folders of parent.
+            folder_t* folder = m_folders.ptr_of(parent);
+            node_t found = c_invalid_node;
+            if (m_folder_nodes->insert(folder->m_folders, str, s_compare_str_with_folder, this, found))
+            {
+                m_folders.ensure_capacity(found);
+
+                folder_t* new_folder  = m_folders.ptr_of(found);
+                new_folder->m_name    = str;
+                new_folder->m_folders = c_invalid_node;
+                new_folder->m_files   = c_invalid_node;
+                new_folder->m_parent  = parent;
+            }
+            return found;
+        }
+
+        node_t root_t::get_parent_path(node_t path) const
+        {
+            folder_t* folder = m_folders.ptr_of(path);
+            return folder->m_parent;
+        }
+
+        node_t root_t::get_first_childpath(node_t path) const
+        {
+            // todo
+            return c_invalid_node;
+        }
+
+        node_t root_t::get_next_childpath(node_t path) const
+        {
+            // todo
+            return c_invalid_node;
         }
 
         //  Objectives:

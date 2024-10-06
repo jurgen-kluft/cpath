@@ -53,9 +53,6 @@ namespace ncore
                 m_memory.reset(initial_items, max_items, sizeof(T));
                 freelist_reset(m_free_head, m_free_index);
             }
-
-            inline u32 idx_of(T const* item) const { return freelist_idx_of(item, m_memory.m_ptr, sizeof(T)); }
-            inline T*  ptr_of(u32 index) const { return (T*)freelist_ptr_of(index, m_memory.m_ptr, sizeof(T)); }
         };
     } // namespace npath
 } // namespace ncore
