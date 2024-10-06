@@ -61,7 +61,7 @@ namespace ncore
             DCORE_CLASS_PLACEMENT_NEW_DELETE
         };
 
-        struct root_t
+        struct instance_t
         {
             void init(alloc_t* allocator, u32 max_items = 1024 * 1024 * 1024);
             void exit(alloc_t* allocator);
@@ -86,8 +86,6 @@ namespace ncore
             node_t    get_path(filepath_t const& filepath);
             string_t  get_filename(filepath_t const& filepath);
             string_t  get_extension(filepath_t const& filepath);
-            root_t*   get_root(dirpath_t const& dirpath);
-            root_t*   get_root(filepath_t const& filepath);
 
             string_t  attach_pathstr(string_t name);
             node_t    attach_pathnode(node_t path);
@@ -112,7 +110,6 @@ namespace ncore
             node_t get_next_childpath(node_t path) const;
             node_t find_or_insert_path(node_t parent, string_t str);
             s32    get_path_strlen(node_t path) const;
-            bool   remove_path(node_t item);
 
             // -----------------------------------------------------------
             //
@@ -127,10 +124,10 @@ namespace ncore
 
         struct device_t
         {
-            inline device_t() : m_root(nullptr), m_alias(0), m_deviceName(0), m_devicePath(0), m_redirector(0), m_userdata1(0), m_userdata2(0) {}
+            inline device_t() : m_owner(nullptr), m_alias(0), m_name(c_invalid_string), m_root(c_invalid_node), m_redirector(0), m_userdata1(0), m_userdata2(0) {}
 
-            void      init(root_t* owner);
-            device_t* construct(alloc_t* allocator, root_t* owner);
+            void      init(instance_t* owner);
+            device_t* construct(alloc_t* allocator, instance_t* owner);
             void      destruct(alloc_t* allocator, device_t*& device);
             device_t* attach();
             bool      detach();
@@ -140,14 +137,14 @@ namespace ncore
 
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
-            root_t*   m_root;
-            string_t  m_alias;        // an alias redirection (e.g. "data")
-            string_t  m_deviceName;   // "[appdir:\]data\bin.pc\", "[data:\]files\" to "[appdir:\]data\bin.pc\files\"
-            node_t    m_devicePath;   // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
-            idevice_t m_device_index; // index into m_pathreg->m_arr_devices
-            idevice_t m_redirector;   // If device path can point to another device_t
-            s32       m_userdata1;    //
-            s32       m_userdata2;    //
+            instance_t* m_owner;
+            string_t    m_alias;      // an alias redirection (e.g. "data")
+            string_t    m_name;       // "[appdir:\]data\bin.pc\", "[data:\]files\" to "[appdir:\]data\bin.pc\files\"
+            node_t      m_root;       // "appdir:\[data\bin.pc\]", "data:\[files\]" to "appdir:\[data\bin.pc\files\]"
+            idevice_t   m_index;      // index into m_pathreg->m_arr_devices
+            idevice_t   m_redirector; // If device path can point to another device_t
+            s32         m_userdata1;  //
+            s32         m_userdata2;  //
         };
 
     } // namespace npath

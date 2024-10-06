@@ -8,6 +8,8 @@ namespace ncore
 {
     namespace npath
     {
+        parser_t::parser_t() : m_device({}), m_path({}), m_filename({}), m_extension({}), m_first_folder({}) {}
+
         // -------------------------------------------------------------------------------------------
         // path parser
         //
@@ -36,10 +38,53 @@ namespace ncore
             if (os == MACOS || os == LINUX)
             {
                 // MacOS, path format is /Volume/Path/To/File
-                if (nrunes::first_char(fullpath) == '/')
+                nrunes::reader_t reader(fullpath);
+                uchar32 const    slash = '/';
+                uchar32 const    dot   = '.';
+                uchar32          c     = reader.read();
+                if (c == slash)
                 {
                     // We will manually iterate the string to find the device, path, filename and extension
 
+                    s32 deviceBegin  = reader.get_cursor();
+                    s32 deviceLength = reader.skip_until_one_of(&slash, 1);
+                    if (deviceLength >= 0)
+                    {
+                        m_device = make_crunes(fullpath, deviceBegin, deviceBegin + deviceLength + 1);
+                        c        = reader.read(); // consume '/'
+
+                        m_first_folder = make_crunes(fullpath, fullpath.m_str, fullpath.m_str);
+
+                        s32 pathBegin = reader.get_cursor();
+                        s32 pathEnd   = -1;
+                        while (true)
+                        {
+                            s32 folderBegin  = reader.get_cursor();
+                            s32 folderLength = reader.skip_until_one_of(&slash, 1);
+                            if (folderLength <= 0)
+                                break;
+                            if (is_empty(m_first_folder))
+                            {
+                                m_first_folder = make_crunes(fullpath, folderBegin, folderBegin + folderLength);
+                            }
+                            pathEnd = folderBegin + folderLength;
+                            c       = reader.read(); // consume '/'
+                        }
+
+                        if (pathEnd >= 0)
+                            m_path = make_crunes(fullpath, pathBegin, pathEnd);
+
+                        s32 const filenameBegin = reader.get_cursor();
+                        s32       length;
+                        do
+                        {
+                            length = reader.skip_until_one_of(&dot, 1);
+                        } while (length >= 0);
+
+                        s32 const filenameEnd = length >= 0 ? reader.get_cursor() : fullpath.m_end;
+                        m_filename            = make_crunes(fullpath, filenameBegin, filenameEnd);
+                        m_extension           = make_crunes(fullpath, filenameEnd, fullpath.m_end);
+                    }
 
                     return true;
                 }

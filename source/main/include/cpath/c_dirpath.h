@@ -21,7 +21,7 @@ namespace ncore
 
     namespace npath
     {
-        struct root_t;
+        struct instance_t;
         struct device_t;
         typedef u32 node_t;
         typedef u32 string_t;
@@ -38,7 +38,7 @@ namespace ncore
         friend class dirinfo_t;
         friend class filepath_t;
         friend class filedevice_t;
-        friend struct npath::root_t;
+        friend struct npath::instance_t;
 
     public:
         dirpath_t();

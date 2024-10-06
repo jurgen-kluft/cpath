@@ -21,6 +21,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_FIXTURE_SETUP()
         {
+            // Initialize virtual memory
             nvmem::initialize();
         }
         UNITTEST_FIXTURE_TEARDOWN() {}
@@ -40,22 +41,28 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(constructor2)
         {
-            npath::root_t reg;
+            npath::instance_t reg;
             reg.init(Allocator);
 
-            // dirpath_t       dirpath;
-            // npath::string_t outdevicename;
-            // npath::node_t   outnode;
-            // reg.register_fulldirpath("c:\\the\\name\\is\\johhnywalker\\", outdevicename, outnode);
+#ifdef TARGET_PC
+            crunes_t fullpath = make_crunes("c:\\the\\name\\is\\johhnywalker\\");
+#elif defined(TARGET_MAC)
+            crunes_t fullpath = make_crunes("/volume/the/name/is/johhnywalker/");
+#endif
 
-            // CHECK_EQUAL(false, dirpath.isEmpty());
+            dirpath_t       dirpath;
+            npath::string_t outdevicename;
+            npath::node_t   outnode;
+            reg.register_fulldirpath(fullpath, outdevicename, outnode);
+
+            CHECK_EQUAL(false, dirpath.isEmpty());
 
             reg.exit(Allocator);
         }
 
         UNITTEST_TEST(to_string)
         {
-            npath::root_t reg;
+            npath::instance_t reg;
             reg.init(Allocator);
 
             // const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";

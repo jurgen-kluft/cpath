@@ -13,29 +13,19 @@ namespace ncore
 {
     namespace npath
     {
-        static u32 hash(utf8::pcrune str, utf8::pcrune end)
-        {
-            u32 hash = 0;
-            while (str < end)
-            {
-                utf8::rune r = *str++;
-                hash         = hash + r.r * 31;
-            }
-            return hash;
-        }
 
-        strings_t::data_t::data_t() : m_data_buffer(), m_data_ptr(nullptr), m_str_buffer(),  m_str_tree(), m_str_root(0) {}
+        strings_t::data_t::data_t() : m_data_buffer(), m_data_ptr(nullptr), m_str_buffer(), m_str_tree(), m_str_root(0) {}
 
         strings_t::strings_t() : m_data() {}
 
-        void strings_t::init(u32 max_items)
+        void strings_t::init(u64 max_items)
         {
-            m_data.m_data_buffer.init(max_items, max_items * 32, sizeof(u8));
-            m_data.m_str_buffer.init(max_items, max_items * 32, sizeof(str_t));
-            m_data.m_str_tree.init(max_items);
+            m_data.m_data_buffer.init(8192, max_items, sizeof(u8));
+            m_data.m_str_buffer.init(8192, max_items, sizeof(str_t));
+            m_data.m_str_tree.init(8192, max_items);
 
             m_data.m_data_ptr = m_data.m_data_buffer.m_ptr;
-            m_data.m_str_root = 0;
+            m_data.m_str_root = c_invalid_node;
         }
 
         void strings_t::exit()
@@ -64,13 +54,13 @@ namespace ncore
             utf8::pcrune      end8 = _str.m_utf8 + _str.m_end;
             utf8::prune const dst  = (utf8::prune)m_data.m_data_buffer.reserve(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
             utf8::prune       dst8 = dst;
-            while (str8 < end8)
+            while (src8 < end8)
                 *dst8++ = *src8++;
             dst->r = 0;
 
             str_t* const str = (str_t*)m_data.m_str_buffer.ptr_of(m_data.m_str_tree.find_slot(), sizeof(str_t));
             str->m_str       = dst;
-            str->m_hash      = hash(str8, end8);
+            str->m_hash      = nhash::strhash((const char*)str8, (const char*)end8);
             str->m_len       = (end8 - str8);
             u32 const istr   = m_data.m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
@@ -85,13 +75,13 @@ namespace ncore
             utf8::pcrune      end8 = _str.m_utf8 + _str.m_end;
             utf8::prune const dst  = (utf8::prune)m_data.m_data_buffer.reserve(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
             utf8::prune       dst8 = dst;
-            while (str8 < end8)
+            while (src8 < end8)
                 *dst8++ = *src8++;
             dst->r = 0;
 
             str_t* const str = (str_t*)m_data.m_str_buffer.ptr_of(m_data.m_str_tree.find_slot(), sizeof(str_t));
             str->m_str       = dst;
-            str->m_hash      = hash(str8, end8);
+            str->m_hash      = nhash::strhash((const char*)str8, (const char*)end8);
             str->m_len       = (end8 - str8);
             u32 const istr   = m_data.m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
@@ -101,8 +91,8 @@ namespace ncore
             if (m_data.m_str_tree.insert(m_data.m_str_root, istr, s_compare_str_to_node, this, inserted_or_found))
             {
                 m_data.m_data_buffer.commit(m_data.m_data_ptr, (end8 - str8) + 1, sizeof(u8));
-                str_t* dst = index_to_object(inserted_or_found);
-                *dst       = *str;
+                str_t* dstr = index_to_object(inserted_or_found);
+                *dstr       = *str;
             }
 
             return inserted_or_found;

@@ -14,6 +14,8 @@ namespace ncore
         class parser_t
         {
         public:
+            parser_t();
+
             enum { WINDOWS=0, MACOS=1, LINUX=2 };
 
             crunes_t m_device;

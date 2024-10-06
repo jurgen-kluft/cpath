@@ -41,7 +41,7 @@ namespace ncore
                 utf8::pcrune m_str;  // Points into 'm_data_buffer'
             };
 
-            void init(u32 max_items = 16 * 1024 * 1024);
+            void init(u64 max_items = 16 * 1024 * 1024);
             void exit();
 
             string_t attach(string_t node);

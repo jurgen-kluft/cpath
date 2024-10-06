@@ -19,7 +19,7 @@ namespace ncore
 
         struct tree_t
         {
-            void init(u32 init_num_items = 16384, u32 max_num_items = 256 * 1024 * 1024);
+            void init(u32 init_num_items = 65532, u32 max_num_items = 256 * 1024 * 1024);
             void exit();
             void reset();
 

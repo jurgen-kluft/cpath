@@ -58,13 +58,14 @@ namespace ncore
                 m_color_array.ensure_capacity(m_tree.m_free_index >> 3, capacity_increase >> 3, sizeof(u8));
             }
 
-            ntree32::node_t temp = m_tree.m_free_index + 1;
+            ntree32::node_t temp = m_tree.m_free_index + 2;
+
             return ntree32::insert(m_tree, _root, temp, _insert, cmp, user_data, inserted);
         }
 
         bool tree_t::remove(node_t& _root, u32 _remove, item_cmp cmp, void const* user_data, node_t& removed)
         {
-            ntree32::node_t temp = m_tree.m_free_index + 1;
+            ntree32::node_t temp = m_tree.m_free_index + 2;
             if (ntree32::remove(m_tree, _root, temp, _remove, cmp, user_data, removed))
             {
                 m_tree.v_del_node(removed);

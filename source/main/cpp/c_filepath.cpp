@@ -12,33 +12,33 @@ namespace ncore
     filepath_t::filepath_t() : m_dirpath(), m_filename(0), m_extension(0) {}
     filepath_t::filepath_t(const filepath_t& other) : m_dirpath(other.m_dirpath)
     {
-        m_filename  = m_dirpath.m_device->m_root->attach_pathstr(other.m_filename);
-        m_extension = m_dirpath.m_device->m_root->attach_pathstr(other.m_extension);
+        m_filename  = m_dirpath.m_device->m_owner->attach_pathstr(other.m_filename);
+        m_extension = m_dirpath.m_device->m_owner->attach_pathstr(other.m_extension);
     }
 
     filepath_t::filepath_t(npath::string_t filename, npath::string_t extension) : m_dirpath()
     {
-        m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
-        m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
+        m_filename  = m_dirpath.m_device->m_owner->attach_pathstr(filename);
+        m_extension = m_dirpath.m_device->m_owner->attach_pathstr(extension);
     }
 
     filepath_t::filepath_t(npath::device_t* device, npath::node_t path, npath::string_t filename, npath::string_t extension) : m_dirpath(device, path)
     {
-        m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
-        m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
+        m_filename  = m_dirpath.m_device->m_owner->attach_pathstr(filename);
+        m_extension = m_dirpath.m_device->m_owner->attach_pathstr(extension);
     }
 
     filepath_t::filepath_t(dirpath_t const& dirpath, npath::string_t filename, npath::string_t extension) : m_dirpath(dirpath)
     {
-        m_filename  = m_dirpath.m_device->m_root->attach_pathstr(filename);
-        m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
+        m_filename  = m_dirpath.m_device->m_owner->attach_pathstr(filename);
+        m_extension = m_dirpath.m_device->m_owner->attach_pathstr(extension);
     }
 
     filepath_t::~filepath_t()
     {
         if (m_dirpath.m_device != nullptr)
         {
-            npath::root_t* root = m_dirpath.m_device->m_root;
+            npath::instance_t* root = m_dirpath.m_device->m_owner;
             root->release_pathstr(m_filename);
             root->release_pathstr(m_extension);
         }
@@ -47,7 +47,7 @@ namespace ncore
     void filepath_t::clear()
     {
         m_dirpath.clear();
-        npath::root_t* root = m_dirpath.m_device->m_root;
+        npath::instance_t* root = m_dirpath.m_device->m_owner;
         root->release_pathstr(m_filename);
         root->release_pathstr(m_extension);
         m_filename  = 0;
@@ -63,7 +63,7 @@ namespace ncore
 
     void filepath_t::setDevice(crunes_t const& devicename)
     {
-        npath::root_t* root = m_dirpath.m_device->m_root;
+        npath::instance_t* root = m_dirpath.m_device->m_owner;
 
         npath::parser_t parser;
         parser.parse(devicename);
@@ -79,37 +79,37 @@ namespace ncore
     {
         if (filename != m_filename)
         {
-            npath::root_t* root = m_dirpath.m_device->m_root;
+            npath::instance_t* root = m_dirpath.m_device->m_owner;
             root->release_pathstr(m_filename);
-            m_filename = m_dirpath.m_device->m_root->attach_pathstr(filename);
+            m_filename = m_dirpath.m_device->m_owner->attach_pathstr(filename);
         }
     }
 
     void filepath_t::setFilename(crunes_t const& filenamestr)
     {
-        npath::root_t*  root          = m_dirpath.m_device->m_root;
+        npath::instance_t*  root          = m_dirpath.m_device->m_owner;
         npath::string_t out_filename  = 0;
         npath::string_t out_extension = 0;
         root->register_filename(filenamestr, out_filename, out_extension);
         root->release_pathstr(m_filename);
         root->release_pathstr(m_extension);
-        m_filename  = m_dirpath.m_device->m_root->attach_pathstr(out_filename);
-        m_extension = m_dirpath.m_device->m_root->attach_pathstr(out_extension);
+        m_filename  = m_dirpath.m_device->m_owner->attach_pathstr(out_filename);
+        m_extension = m_dirpath.m_device->m_owner->attach_pathstr(out_extension);
     }
 
     void filepath_t::setExtension(npath::string_t extension)
     {
         if (extension != m_extension)
         {
-            npath::root_t* root = m_dirpath.m_device->m_root;
+            npath::instance_t* root = m_dirpath.m_device->m_owner;
             root->release_pathstr(m_extension);
-            m_extension = m_dirpath.m_device->m_root->attach_pathstr(extension);
+            m_extension = m_dirpath.m_device->m_owner->attach_pathstr(extension);
         }
     }
 
     void filepath_t::setExtension(crunes_t const& extensionstr)
     {
-        npath::root_t*  root = m_dirpath.m_device->m_root;
+        npath::instance_t*  root = m_dirpath.m_device->m_owner;
         npath::string_t extension = root->find_or_insert_string(extensionstr);
         setExtension(extension);
     }
@@ -120,7 +120,7 @@ namespace ncore
     filepath_t filepath_t::filename() const { return filepath_t(m_filename, m_extension); }
     filepath_t filepath_t::relative() const
     {
-        npath::root_t* root = m_dirpath.m_device->m_root;
+        npath::instance_t* root = m_dirpath.m_device->m_owner;
         filepath_t     fp(nullptr, m_dirpath.m_path, m_filename, m_extension);
         return fp;
     }
@@ -136,30 +136,30 @@ namespace ncore
         // m_dirpath.split(pivot, left, right.m_dirpath);
         // left.m_device = m_dirpath.m_device->attach();
         // right.m_dirpath.m_device = m_dirpath.m_device->attach();
-        // right.m_filename = m_dirpath.m_device->m_root->attach(m_filename);
-        // right.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
+        // right.m_filename = m_dirpath.m_device->m_owner->attach(m_filename);
+        // right.m_extension = m_dirpath.m_device->m_owner->attach(m_extension);
     }
 
     void filepath_t::truncate(filepath_t& left, npath::node_t& folder) const
     {
         // left.clear();
         // folder = m_dirpath.basename();
-        // npath::root_t* root = m_dirpath.m_device->m_root;
+        // npath::instance_t* root = m_dirpath.m_device->m_owner;
         // root->get_split_path(m_dirpath.m_path, m_dirpath.m_path->m_len - 1, &left.m_dirpath.m_path, nullptr);
         // left.m_dirpath.m_device = m_dirpath.m_device->attach();
-        // left.m_filename = m_dirpath.m_device->m_root->attach(m_filename);
-        // left.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
+        // left.m_filename = m_dirpath.m_device->m_owner->attach(m_filename);
+        // left.m_extension = m_dirpath.m_device->m_owner->attach(m_extension);
     }
 
     void filepath_t::truncate(npath::node_t& folder, filepath_t& filepath) const
     {
         // filepath.clear();
         // folder = m_dirpath.rootname();
-        // npath::root_t* root = m_dirpath.m_device->m_root;
+        // npath::instance_t* root = m_dirpath.m_device->m_owner;
         // root->get_split_path(m_dirpath.m_path, m_dirpath.m_path->m_len - 1, &filepath.m_dirpath.m_path, nullptr);
         // filepath.m_dirpath.m_device = m_dirpath.m_device->attach();
-        // filepath.m_filename = m_dirpath.m_device->m_root->attach(m_filename);
-        // filepath.m_extension = m_dirpath.m_device->m_root->attach(m_extension);
+        // filepath.m_filename = m_dirpath.m_device->m_owner->attach(m_filename);
+        // filepath.m_extension = m_dirpath.m_device->m_owner->attach(m_extension);
     }
 
     void filepath_t::combine(npath::node_t folder, filepath_t const& filepath) {}
@@ -170,7 +170,7 @@ namespace ncore
 
     // void filepath_t::to_string(runes_t& str) const
     // {
-    //     npath::root_t* root = m_dirpath.m_device->m_root;
+    //     npath::instance_t* root = m_dirpath.m_device->m_owner;
 
     //     m_dirpath.to_string(str);
 
@@ -183,7 +183,7 @@ namespace ncore
 
     // s32 filepath_t::to_strlen() const
     // {
-    //     npath::root_t* root         = m_dirpath.m_device->m_root;
+    //     npath::instance_t* root         = m_dirpath.m_device->m_owner;
     //     crunes_t       filenamestr  = root->get_crunes(m_filename);
     //     crunes_t       extensionstr = root->get_crunes(m_filename);
     //     return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
@@ -191,7 +191,7 @@ namespace ncore
 
     s32 filepath_t::compare(const filepath_t& right) const
     {
-        npath::root_t* root = m_dirpath.m_device->m_root;
+        npath::instance_t* root = m_dirpath.m_device->m_owner;
         s32 const      fe   = root->compare_str(m_filename, right.m_filename);
         if (fe != 0)
             return fe;
@@ -204,11 +204,11 @@ namespace ncore
     filepath_t& filepath_t::operator=(const filepath_t& fp)
     {
         m_dirpath           = fp.m_dirpath;
-        npath::root_t* root = m_dirpath.m_device->m_root;
+        npath::instance_t* root = m_dirpath.m_device->m_owner;
         root->release_pathstr(m_filename);
         root->release_pathstr(m_extension);
-        m_filename  = fp.m_dirpath.m_device->m_root->attach_pathstr(m_filename);
-        m_extension = fp.m_dirpath.m_device->m_root->attach_pathstr(m_extension);
+        m_filename  = fp.m_dirpath.m_device->m_owner->attach_pathstr(m_filename);
+        m_extension = fp.m_dirpath.m_device->m_owner->attach_pathstr(m_extension);
         return *this;
     }
 

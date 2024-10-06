@@ -7,13 +7,13 @@ namespace ncore
     {
         const u32 c_capacity_bias = 4;
 
-        void memory_t::init(u32 initial_capacity, u32 max_capacity, u32 item_size)
+        void memory_t::init(u64 initial_capacity, u64 max_capacity, u32 item_size)
         {
             u32 const page_size = nvmem::page_size();
 
             m_ptr                    = nullptr;
-            u32 const reserved_size  = ((max_capacity * item_size + page_size - 1) / page_size) * page_size;
-            u32 const committed_size = ((initial_capacity * item_size + page_size - 1) / page_size) * page_size;
+            u64 const reserved_size  = ((max_capacity * item_size + page_size - 1) / page_size) * page_size;
+            u64 const committed_size = ((initial_capacity * item_size + page_size - 1) / page_size) * page_size;
 
             // u64 address_range, u32& page_size, u32 reserve_flags, void*& baseptr
             void* baseptr = nullptr;
@@ -36,7 +36,7 @@ namespace ncore
             m_committed = 0;
         }
 
-        void memory_t::reset(u32 initial_capacity, u32 item_size)
+        void memory_t::reset(u64 initial_capacity, u32 item_size)
         {
             // Figure out how much memory we need to uncommit
             u32 const page_size      = nvmem::page_size();
@@ -51,7 +51,7 @@ namespace ncore
             }
         }
 
-        void memory_t::add_capacity(u32 capacity, u32 item_size)
+        void memory_t::add_capacity(u64 capacity, u32 item_size)
         {
             // commit size = capacity * item size
             u32 const page_size   = nvmem::page_size();

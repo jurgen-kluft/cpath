@@ -34,7 +34,7 @@ UNITTEST_SUITE_BEGIN(filepath)
 
         UNITTEST_TEST(constructor2)
         {
-            npath::root_t reg;
+            npath::instance_t reg;
             reg.init(Allocator);
 
             // const char* str = "TEST:\\textfiles\\docs\\readme.txt";
