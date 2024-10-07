@@ -9,7 +9,6 @@
 #include "cpath/c_path.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/c_filepath.h"
-#include "cpath/private/c_parser.h"
 #include "cpath/private/c_strings.h"
 #include "cpath/private/c_folders.h"
 #include "cpath/c_device.h"
@@ -307,7 +306,7 @@ namespace ncore
 
         void g_destruct_devices(alloc_t* allocator, devices_t*& devices)
         {
-            for (s32 i = 0; i < devices->m_max_devices; ++i)
+            for (idevice_t i = 0; i < devices->m_max_devices; ++i)
                 g_destruct(allocator, devices->m_arr_devices[i]);
             g_deallocate_array(allocator, devices->m_arr_devices);
             g_deallocate_array(allocator, devices->m_device_nodes);

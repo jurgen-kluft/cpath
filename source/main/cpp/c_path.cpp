@@ -10,7 +10,6 @@
 #include "cpath/c_dirpath.h"
 #include "cpath/c_filepath.h"
 #include "cpath/private/c_strings.h"
-#include "cpath/private/c_parser.h"
 #include "cpath/private/c_folders.h"
 #include "cpath/c_device.h"
 
@@ -29,7 +28,6 @@ namespace ncore
 
             paths->m_devices = g_construct_devices(allocator, paths, paths->m_strings);
             paths->m_folders = g_construct_folders(allocator, max_items);
-            // m_files   = g_construct_files(allocator, max_items);
 
             return paths;
         }
@@ -37,10 +35,9 @@ namespace ncore
         void g_destruct_paths(alloc_t* allocator, paths_t*& paths)
         {
             g_destruct_devices(allocator, paths->m_devices);
-            // g_destruct_files(allocator, m_files);
             g_destruct_folders(allocator, paths->m_folders);
             g_destruct_strings(allocator, paths->m_strings);
-            g_destruct(paths->m_allocator, paths->m_strings);
+            g_destruct(allocator, paths);
         }
 
         device_t* paths_t::register_device(crunes_t const& devicename)
@@ -91,12 +88,52 @@ namespace ncore
         s8 paths_t::compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
         s8 paths_t::compare_str(folder_t* left, folder_t* right) const { return m_strings->compare(left->m_name, right->m_name); }
 
-        dirpath_t paths_t::register_fulldirpath(crunes_t const& fulldirpath)
+        static bool s_next_folder(crunes_t& folder, char slash)
+        {
+            folder.m_str = folder.m_end;
+            folder.m_end = folder.m_eos;
+            folder       = nrunes::findSelectUntilIncluded(folder, slash);
+            return !is_empty(folder);
+        }
+
+        dirpath_t paths_t::register_fulldirpath(crunes_t const& _fulldirpath)
         {
             // extract device, then init a 'crunes_t path' that contains everything after the device
             // select the first 'folder' from this 'path' and call device->register_dirpath(folder, out_dirpath)
+            crunes_t fulldirpath = _fulldirpath;
+            fulldirpath.m_eos    = fulldirpath.m_end;
 
-            return dirpath_t(this->m_devices->get_default_device());
+            crunes_t devicestr = nrunes::findSelectUntilIncluded(fulldirpath, ':');
+
+            if (is_empty(devicestr))
+            {
+                return dirpath_t(this->m_devices->get_default_device());
+            }
+
+            device_t* device = register_device(devicestr);
+            if (device == nullptr)
+            {
+                return dirpath_t(this->m_devices->get_default_device());
+            }
+
+            crunes_t path = nrunes::selectAfterExclude(fulldirpath, devicestr);
+            nrunes::trimLeft(path, '/');
+
+            crunes_t firstFolder = nrunes::findSelectUntilIncluded(path, '/');
+            node_t   path_node   = c_invalid_node;
+            if (!is_empty(firstFolder))
+            {
+                crunes_t folder      = firstFolder;
+                node_t   parent_node = c_invalid_node;
+                do
+                {
+                    string_t folder_pathstr = find_or_insert_string(folder);
+                    node_t   folder_node    = device->add_dir(parent_node, folder_pathstr);
+                    parent_node             = folder_node;
+                    path_node               = folder_node;
+                } while (s_next_folder(folder, '/'));
+            }
+            return dirpath_t(device, path_node);
         }
 
         filepath_t paths_t::register_fullfilepath(crunes_t const& fullfilepath)

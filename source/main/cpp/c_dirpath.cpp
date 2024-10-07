@@ -7,7 +7,6 @@
 #include "cpath/c_filepath.h"
 #include "cpath/c_dirpath.h"
 #include "cpath/c_device.h"
-#include "cpath/private/c_parser.h"
 #include "cpath/private/c_folders.h"
 
 namespace ncore
@@ -167,27 +166,7 @@ namespace ncore
 
     filepath_t dirpath_t::filename(crunes_t const& filename) const
     {
-        npath::paths_t* root = m_device->m_owner;
-
-        npath::parser_t parser;
-        parser.parse(filename);
-
-        if (parser.has_filename() && parser.has_extension())
-        {
-            npath::string_t filename  = root->find_or_insert_string(parser.m_filename);
-            npath::string_t extension = root->find_or_insert_string(parser.m_extension);
-            return filepath_t(m_device, m_path, filename, extension);
-        }
-        else if (parser.has_filename())
-        {
-            npath::string_t filename = root->find_or_insert_string(parser.m_filename);
-            return filepath_t(m_device, m_path, filename, 0);
-        }
-        else if (parser.has_extension())
-        {
-            npath::string_t extension = root->find_or_insert_string(parser.m_extension);
-            return filepath_t(m_device, m_path, 0, extension);
-        }
+        // TODO
 
         return filepath_t(m_device);
     }

@@ -62,11 +62,13 @@ namespace ncore
 
         void g_destruct_strings(alloc_t* allocator, strings_t*& strings)
         {
-            g_exit_memory( strings->m_data->m_str_buffer);
+            g_exit_memory(strings->m_data->m_str_buffer);
             g_exit_memory(strings->m_data->m_data_buffer);
             g_exit_memory(strings->m_data->m_node_array);
             ntree32::teardown_tree(strings->m_data->m_str_tree);
             strings->m_data->m_data_ptr = nullptr;
+            g_destruct(allocator, strings->m_data);
+            g_destruct(allocator, strings);
         }
 
         string_t strings_t::attach(string_t node) { return node; }
