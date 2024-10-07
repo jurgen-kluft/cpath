@@ -48,10 +48,10 @@ namespace ncore
 
     void dirpath_t::clear()
     {
-        npath::instance_t* root = m_device->m_owner;
-        m_device                = root->m_devices->get_default_device();
-        m_base                  = npath::c_empty_node;
-        m_path                  = npath::c_empty_node;
+        npath::paths_t* root = m_device->m_owner;
+        m_device             = root->m_devices->get_default_device();
+        m_base               = npath::c_empty_node;
+        m_path               = npath::c_empty_node;
     }
 
     bool dirpath_t::isEmpty() const { return m_base == npath::c_empty_node && m_path == npath::c_empty_node; }
@@ -86,15 +86,15 @@ namespace ncore
 
     npath::string_t dirpath_t::basename() const
     {
-        npath::instance_t* root   = m_device->m_owner;
-        npath::folder_t*   folder = root->m_folders->m_array.ptr_of(m_path);
+        npath::paths_t*  root   = m_device->m_owner;
+        npath::folder_t* folder = root->m_folders->m_array.ptr_of(m_path);
         return folder->m_name;
     }
 
     npath::string_t dirpath_t::rootname() const
     {
-        npath::instance_t* root = m_device->m_owner;
-        npath::node_t      iter = m_path;
+        npath::paths_t* root = m_device->m_owner;
+        npath::node_t   iter = m_path;
 
         npath::folder_t* folder = root->m_folders->m_array.ptr_of(iter);
         while (folder->m_parent != 0)
@@ -109,16 +109,16 @@ namespace ncore
 
     dirpath_t dirpath_t::root() const
     {
-        dirpath_t          dp(m_device);
-        npath::instance_t* root = m_device->m_owner;
-        dp.m_base               = m_base;
+        dirpath_t       dp(m_device);
+        npath::paths_t* root = m_device->m_owner;
+        dp.m_base            = m_base;
         return dp;
     }
 
     dirpath_t dirpath_t::parent() const
     {
-        npath::instance_t* root = m_device->m_owner;
-        dirpath_t          dp(m_device);
+        npath::paths_t* root = m_device->m_owner;
+        dirpath_t       dp(m_device);
         dp.m_base = m_path;
         dp.m_path = m_path;
         return dp;
@@ -128,10 +128,10 @@ namespace ncore
     {
         if (m_path == 0)
             return 0;
-        s32                levels = 1;
-        npath::instance_t* root   = m_device->m_owner;
-        npath::node_t      iter   = m_path;
-        npath::folder_t*   folder = root->m_folders->m_array.ptr_of(iter);
+        s32              levels = 1;
+        npath::paths_t*  root   = m_device->m_owner;
+        npath::node_t    iter   = m_path;
+        npath::folder_t* folder = root->m_folders->m_array.ptr_of(iter);
         while (folder->m_parent != 0)
         {
             iter   = folder->m_parent;
@@ -143,34 +143,34 @@ namespace ncore
 
     dirpath_t dirpath_t::up() const
     {
-        npath::instance_t* root   = m_device->m_owner;
-        npath::folder_t*   folder = root->m_folders->m_array.ptr_of(m_path);
-        npath::node_t      path   = folder->m_parent;
+        npath::paths_t*  root   = m_device->m_owner;
+        npath::folder_t* folder = root->m_folders->m_array.ptr_of(m_path);
+        npath::node_t    path   = folder->m_parent;
         return dirpath_t(m_device, m_base, path);
     }
 
     dirpath_t dirpath_t::down() const
     {
-        npath::instance_t* const root = m_device->m_owner;
-        npath::node_t const      base = m_device->get_first_child_dir(m_path);
-        npath::node_t const      path = m_base;
+        npath::paths_t* const root = m_device->m_owner;
+        npath::node_t const   base = m_device->get_first_child_dir(m_path);
+        npath::node_t const   path = m_base;
         return dirpath_t(m_device, base, path);
     }
 
     dirpath_t dirpath_t::down(crunes_t const& folder) const
     {
-        npath::instance_t*  root       = m_device->m_owner;
+        npath::paths_t*     root       = m_device->m_owner;
         npath::string_t     folder_str = root->find_or_insert_string(folder);
         npath::node_t const path       = m_device->add_dir(m_path, folder_str);
         return dirpath_t(m_device, m_base, path);
     }
 
-    filepath_t dirpath_t::file(crunes_t const& filepath) const
+    filepath_t dirpath_t::filename(crunes_t const& filename) const
     {
-        npath::instance_t* root = m_device->m_owner;
+        npath::paths_t* root = m_device->m_owner;
 
         npath::parser_t parser;
-        parser.parse(filepath);
+        parser.parse(filename);
 
         if (parser.has_filename() && parser.has_extension())
         {
@@ -212,14 +212,14 @@ namespace ncore
 
     // void dirpath_t::to_string(runes_t& str) const
     // {
-    //     npath::instance_t* root = m_device->m_owner;
+    //     npath::paths_t* root = m_device->m_owner;
     //     m_device->to_string(str);
     //     root->to_string(m_path, str);
     // }
 
     // s32 dirpath_t::to_strlen() const
     // {
-    //     npath::instance_t* root = m_device->m_owner;
+    //     npath::paths_t* root = m_device->m_owner;
     //     s32            len  = m_device->to_strlen();
     //     len += root->to_strlen(m_path);
     //     return len;

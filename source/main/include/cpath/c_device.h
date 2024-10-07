@@ -10,28 +10,15 @@
 #include "cbase/c_runes.h"
 #include "cbase/c_tree32.h"
 
+#include "cpath/c_types.h"
+
 namespace ncore
 {
-    class alloc_t;
-
-    class filepath_t;
-    class dirpath_t;
-
     namespace npath
     {
-        struct instance_t;
-        struct strings_t;
-
-        typedef u32 string_t;
-        typedef u32 node_t;
-
-        struct devices_t;
-        typedef s16     idevice_t;
-        const idevice_t c_invalid_device = -1;
-
         struct device_t
         {
-            device_t(instance_t* owner, string_t name, node_t path, idevice_t index);
+            device_t(paths_t* owner, string_t name, node_t path, idevice_t index);
 
             inline string_t name() const { return m_name; }
 
@@ -52,7 +39,7 @@ namespace ncore
 
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
-            instance_t* m_owner;
+            paths_t* m_owner;
             string_t    m_name;       // name (e.g. "appdir")
             node_t      m_path;       // [folder_t] path (e.g. "data\bin.pc" or "e:\")
             idevice_t   m_index;      // index into m_pathreg->m_arr_devices
@@ -68,7 +55,7 @@ namespace ncore
             device_t* get_device(idevice_t index) const;
             device_t* get_default_device() const;
 
-            instance_t*       m_owner;
+            paths_t*       m_owner;
             strings_t*        m_strings;
             device_t**        m_arr_devices;
             ntree32::nnode_t* m_device_nodes;

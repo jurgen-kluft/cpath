@@ -16,11 +16,8 @@ namespace ncore
 {
     namespace npath
     {
-        struct instance_t
+        struct paths_t
         {
-            void init(alloc_t* allocator, u32 max_items = 1024 * 1024 * 1024);
-            void exit(alloc_t* allocator);
-
             // -----------------------------------------------------------
             // device registration
             device_t* register_device(crunes_t const& devicename);
@@ -42,14 +39,18 @@ namespace ncore
             void     to_string(string_t str, runes_t& out_str) const;
             s32      to_strlen(string_t str) const;
 
+            DCORE_CLASS_PLACEMENT_NEW_DELETE
+
             // -----------------------------------------------------------
             //
             alloc_t*   m_allocator;
             strings_t* m_strings;
             devices_t* m_devices;
             folders_t* m_folders;
-            files_t*   m_files;
         };
+
+        paths_t* g_construct_paths(alloc_t* allocator, u32 max_items = 1024 * 1024 * 1024);
+        void     g_destruct_paths(alloc_t* allocator, paths_t*& paths);
 
     } // namespace npath
 

@@ -44,25 +44,25 @@ namespace ncore
         void       g_destruct_folders(alloc_t* allocator, folders_t*& folders);
         node_t     g_allocate_folder(folders_t* folders, string_t name);
 
-        typedef u32 ifile_t;
-        struct file_t
-        {
-            string_t m_filename;  // file name
-            string_t m_extension; // file extension
-        };
+        // typedef u32 ifile_t;
+        // struct file_t
+        // {
+        //     string_t m_filename;  // file name
+        //     string_t m_extension; // file extension
+        // };
 
-        struct files_t
-        {
-            ntree32::tree_t             m_tree; // And extensions
-            u32                         m_count;
-            objects_t<ntree32::nnode_t> m_nodes;
-            objects_t<file_t>           m_array; // A file consists of a filename and an extension
-            DCORE_CLASS_PLACEMENT_NEW_DELETE
-        };
+        // struct files_t
+        // {
+        //     ntree32::tree_t             m_tree; // And extensions
+        //     u32                         m_count;
+        //     objects_t<ntree32::nnode_t> m_nodes;
+        //     objects_t<file_t>           m_array; // A file consists of a filename and an extension
+        //     DCORE_CLASS_PLACEMENT_NEW_DELETE
+        // };
 
-        files_t* g_construct_files(alloc_t* allocator, u32 max_items);
-        void     g_destruct_files(alloc_t* allocator, files_t*& files);
-        node_t   g_allocate_file(files_t* folders, string_t filename, string_t extension);
+        // files_t* g_construct_files(alloc_t* allocator, u32 max_items);
+        // void     g_destruct_files(alloc_t* allocator, files_t*& files);
+        // node_t   g_allocate_file(files_t* folders, string_t filename, string_t extension);
 
     } // namespace npath
 } // namespace ncore

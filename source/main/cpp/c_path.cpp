@@ -18,7 +18,7 @@ namespace ncore
 {
     namespace npath
     {
-        static void s_init_devices(alloc_t* allocator, devices_t* devices, instance_t* instance, strings_t* strings)
+        static void s_init_devices(alloc_t* allocator, devices_t* devices, paths_t* instance, strings_t* strings)
         {
             s32 const c_extra_devices = 2; // For 'find' and 'temp' slots
             devices->m_num_devices    = 1;
@@ -46,50 +46,50 @@ namespace ncore
             devices = nullptr;
         }
 
-        void instance_t::init(alloc_t* allocator, u32 max_items)
+        paths_t* g_construct_paths(alloc_t* allocator, u32 max_items)
         {
-            m_allocator = allocator;
+            paths_t* paths     = g_construct<paths_t>(allocator);
+            paths->m_allocator = allocator;
 
-            m_strings = g_construct_strings(allocator);
-            string_t default_string = m_strings->insert(make_crunes("nil"));
+            paths->m_strings        = g_construct_strings(allocator);
+            string_t default_string = paths->m_strings->insert(make_crunes("nil"));
             ASSERT(default_string == c_empty_string);
 
-            m_folders = g_construct_folders(allocator, max_items);
-            m_files   = g_construct_files(allocator, max_items);
+            paths->m_folders = g_construct_folders(allocator, max_items);
+            // m_files   = g_construct_files(allocator, max_items);
 
-            m_devices = g_construct<devices_t>(m_allocator);
-            s_init_devices(allocator, m_devices, this, m_strings);
+            paths->m_devices = g_construct<devices_t>(paths->m_allocator);
+            s_init_devices(allocator, paths->m_devices, paths, paths->m_strings);
+
+            return paths;
         }
 
-        void instance_t::exit(alloc_t* allocator)
+        void g_destruct_paths(alloc_t* allocator, paths_t*& paths)
         {
-            s_exit_devices(allocator, m_devices);
+            s_exit_devices(allocator, paths->m_devices);
 
-            g_destruct_files(allocator, m_files);
-            g_destruct_folders(allocator, m_folders);
-            g_destruct_strings(allocator, m_strings);
-            g_destruct(m_allocator, m_strings);
+            // g_destruct_files(allocator, m_files);
+            g_destruct_folders(allocator, paths->m_folders);
+            g_destruct_strings(allocator, paths->m_strings);
+            g_destruct(paths->m_allocator, paths->m_strings);
         }
 
-        device_t* instance_t::register_device(crunes_t const& devicename)
+        device_t* paths_t::register_device(crunes_t const& devicename)
         {
             string_t  devicestr = m_strings->insert(devicename);
             idevice_t idevice   = m_devices->register_device(devicestr);
             return m_devices->get_device(idevice);
         }
 
-        node_t instance_t::allocate_folder(string_t name)
-        {
-            return g_allocate_folder(m_folders, name);
-        }
+        node_t paths_t::allocate_folder(string_t name) { return g_allocate_folder(m_folders, name); }
 
-        string_t instance_t::find_string(const crunes_t& namestr) const
+        string_t paths_t::find_string(const crunes_t& namestr) const
         {
             string_t name = m_strings->find(namestr);
             return name;
         }
 
-        string_t instance_t::find_or_insert_string(crunes_t const& namestr)
+        string_t paths_t::find_or_insert_string(crunes_t const& namestr)
         {
             string_t name = m_strings->find(namestr);
             if (name == c_invalid_string)
@@ -99,29 +99,30 @@ namespace ncore
             return name;
         }
 
-        crunes_t instance_t::get_crunes(string_t _str) const
+        crunes_t paths_t::get_crunes(string_t _str) const
         {
             crunes_t str;
             m_strings->view_string(_str, str);
             return str;
         }
 
-        void instance_t::to_string(string_t _str, runes_t& _out_str) const
+        void paths_t::to_string(string_t _str, runes_t& _out_str) const
         {
             crunes_t str;
             m_strings->view_string(_str, str);
             nrunes::concatenate(_out_str, str);
         }
 
-        s32 instance_t::to_strlen(string_t str) const
+        s32 paths_t::to_strlen(string_t str) const
         {
             s32 len = m_strings->get_len(str);
             return len;
         }
 
-        s8 instance_t::compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
+        s8 paths_t::compare_str(string_t left, string_t right) const { return m_strings->compare(left, right); }
+        s8 paths_t::compare_str(folder_t* left, folder_t* right) const { return m_strings->compare(left->m_name, right->m_name); }
 
-        dirpath_t instance_t::register_fulldirpath(crunes_t const& fulldirpath)
+        dirpath_t paths_t::register_fulldirpath(crunes_t const& fulldirpath)
         {
             // extract device, then init a 'crunes_t path' that contains everything after the device
             // select the first 'folder' from this 'path' and call device->register_dirpath(folder, out_dirpath)
@@ -129,7 +130,7 @@ namespace ncore
             return dirpath_t(this->m_devices->get_default_device());
         }
 
-        filepath_t instance_t::register_fullfilepath(crunes_t const& fullfilepath)
+        filepath_t paths_t::register_fullfilepath(crunes_t const& fullfilepath)
         {
             // extract device, then init a 'crunes_t path' that contains everything after the device
             // select the first 'folder' from this 'path' and call device->register_filepath(folder, out_filepath)

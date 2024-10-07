@@ -25,7 +25,7 @@ namespace ncore
         // --------------------------------------------------------------------------------------------------------------
         // --------------------------------------------------------------------------------------------------------------
 
-        device_t::device_t(instance_t* owner, string_t name, node_t path, idevice_t index) : m_owner(owner), m_name(name), m_path(path), m_index(index), m_redirector(c_invalid_device), m_userdata1(0), m_userdata2(0)
+        device_t::device_t(paths_t* owner, string_t name, node_t path, idevice_t index) : m_owner(owner), m_name(name), m_path(path), m_index(index), m_redirector(c_invalid_device), m_userdata1(0), m_userdata2(0)
         {
             // constructor
         }
@@ -69,8 +69,7 @@ namespace ncore
         {
             folder.m_str = folder.m_end;
             folder.m_end = folder.m_eos;
-            nrunes::trimLeft(folder, slash);
-            folder = nrunes::findSelectUntil(folder, slash);
+            folder = nrunes::findSelectUntilIncluded(folder, slash);
             return !is_empty(folder);
         }
 
@@ -147,7 +146,6 @@ namespace ncore
             folder_t* folder = m_owner->m_folders->m_array.ptr_of(m_path);
             while (folder->m_parent != c_invalid_node)
             {
-                strlen += 1; // for the separator
                 strlen += m_owner->m_strings->get_len(folder->m_name);
             }
 
@@ -156,14 +154,14 @@ namespace ncore
 
         static s8 s_compare_str_with_folder(u32 find_str, u32 _node_folder, void const* user_data)
         {
-            instance_t const* const root        = (instance_t const*)user_data;
+            paths_t const* const root        = (paths_t const*)user_data;
             folder_t const* const   node_folder = root->m_folders->m_array.ptr_of(_node_folder);
             return root->m_strings->compare(find_str, node_folder->m_name);
         }
 
         static s8 s_compare_folder_with_folder(u32 _find_folder, u32 _node_folder, void const* user_data)
         {
-            instance_t const* const root        = (instance_t const*)user_data;
+            paths_t const* const root        = (paths_t const*)user_data;
             folder_t const* const   find_folder = root->m_folders->m_array.ptr_of(_find_folder);
             folder_t const* const   node_folder = root->m_folders->m_array.ptr_of(_node_folder);
             return root->m_strings->compare(find_folder->m_name, node_folder->m_name);

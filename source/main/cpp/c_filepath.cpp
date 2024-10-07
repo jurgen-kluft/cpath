@@ -41,7 +41,7 @@ namespace ncore
 
     void filepath_t::clear()
     {
-        npath::instance_t* root = m_dirpath.m_device->m_owner;
+        npath::paths_t* root = m_dirpath.m_device->m_owner;
         m_filename  = 0;
         m_extension = 0;
     }
@@ -59,7 +59,7 @@ namespace ncore
 
     // void filepath_t::to_string(runes_t& str) const
     // {
-    //     npath::instance_t* root = m_dirpath.m_device->m_owner;
+    //     npath::paths_t* root = m_dirpath.m_device->m_owner;
 
     //     m_dirpath.to_string(str);
 
@@ -72,7 +72,7 @@ namespace ncore
 
     // s32 filepath_t::to_strlen() const
     // {
-    //     npath::instance_t* root         = m_dirpath.m_device->m_owner;
+    //     npath::paths_t* root         = m_dirpath.m_device->m_owner;
     //     crunes_t       filenamestr  = root->get_crunes(m_filename);
     //     crunes_t       extensionstr = root->get_crunes(m_filename);
     //     return m_dirpath.to_strlen() + filenamestr.len() + extensionstr.len();
@@ -80,7 +80,7 @@ namespace ncore
 
     s8 filepath_t::compare(const filepath_t& right) const
     {
-        npath::instance_t* root = m_dirpath.m_device->m_owner;
+        npath::paths_t* root = m_dirpath.m_device->m_owner;
         s8 const           fe   = root->compare_str(m_filename, right.m_filename);
         if (fe != 0)
             return fe;

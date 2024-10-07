@@ -36,29 +36,26 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(constructor1)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
-            dirpath_t dirpath(reg.m_devices->get_default_device());
+            dirpath_t dirpath(paths->m_devices->get_default_device());
             CHECK_EQUAL(true, dirpath.isEmpty());
 
-            reg.exit(Allocator);
+            npath::g_destruct_paths(Allocator, paths);
         }
 
         UNITTEST_TEST(register_device)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
-            npath::device_t* device = reg.register_device(make_crunes("c:"));
+            npath::device_t* device = paths->register_device(make_crunes("c:"));
 
-            reg.exit(Allocator);
+            npath::g_destruct_paths(Allocator, paths);
         }
 
         UNITTEST_TEST(constructor2)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
 #ifdef TARGET_PC
             crunes_t fullpath = make_crunes("c:\\the\\name\\is\\johhnywalker\\");
@@ -66,23 +63,22 @@ UNITTEST_SUITE_BEGIN(dirpath)
             crunes_t fullpath = make_crunes("/volume/the/name/is/johhnywalker/");
 #endif
 
-            dirpath_t dirpath = reg.register_fulldirpath(fullpath);
+            dirpath_t dirpath = paths->register_fulldirpath(fullpath);
             CHECK_FALSE(dirpath.isEmpty());
 
-            reg.exit(Allocator);
+            npath::g_destruct_paths(Allocator, paths);
         }
 
         UNITTEST_TEST(to_string)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
             // const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
 
             // npath::string_t outdevicename;
             // npath::node_t   outnode;
-            // reg.register_fulldirpath(asciidirstr, outdevicename, outnode);
-            // dirpath_t dirpath(reg.get_device(outdevicename), outnode);
+            // paths->register_fulldirpath(asciidirstr, outdevicename, outnode);
+            // dirpath_t dirpath(paths->get_device(outdevicename), outnode);
 
             // utf32::rune dst_runes[256];
             // dst_runes[0] = 0;
@@ -92,7 +88,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
             // dirpath.to_string(dst);
             // CHECK_EQUAL(0, nrunes::compare(dst, asciidirstr));
 
-            reg.exit(Allocator);
+            npath::g_destruct_paths(Allocator, paths);
         }
     }
 }

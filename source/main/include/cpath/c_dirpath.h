@@ -30,7 +30,7 @@ namespace ncore
         friend class dirinfo_t;
         friend class filepath_t;
         friend class filedevice_t;
-        friend struct npath::instance_t;
+        friend struct npath::paths_t;
 
     public:
         dirpath_t(dirpath_t const& other);
@@ -61,7 +61,7 @@ namespace ncore
         dirpath_t  up() const;                           // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\old\inventory\books\"
         dirpath_t  down() const;                         // return the first child folder of this dirpath
         dirpath_t  down(crunes_t const& folder) const;   // return the child folder of this dirpath that matches the folder name
-        filepath_t file(crunes_t const& filename) const; // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
+        filepath_t filename(crunes_t const& filename) const; // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
 
         dirpath_t& operator=(dirpath_t const& other);
         s32        compare(const dirpath_t& other) const;

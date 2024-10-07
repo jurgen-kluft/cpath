@@ -28,18 +28,18 @@ UNITTEST_SUITE_BEGIN(filepath)
 
         UNITTEST_TEST(constructor1)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
-            filepath_t p1(reg.m_devices->get_default_device());
+            filepath_t p1(paths->m_devices->get_default_device());
 
             CHECK_TRUE(p1.isEmpty());
+
+            npath::g_destruct_paths(Allocator, paths);
         }
 
         UNITTEST_TEST(constructor2)
         {
-            npath::instance_t reg;
-            reg.init(Allocator);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
 
             // const char* str = "TEST:\\textfiles\\docs\\readme.txt";
             // filepath_t  p;
@@ -48,11 +48,11 @@ UNITTEST_SUITE_BEGIN(filepath)
             // npath::node_t   out_path;
             // npath::string_t out_filename;
             // npath::string_t out_extension;
-            // reg.register_fullfilepath(str, out_device, out_path, out_filename, out_extension);
+            // paths.register_fullfilepath(str, out_device, out_path, out_filename, out_extension);
 
             // CHECK_FALSE(p.isEmpty());
 
-            reg.exit(Allocator);
+            npath::g_destruct_paths(Allocator, paths);
         }
     }
 }

@@ -50,39 +50,39 @@ namespace ncore
         }
 
 
-        files_t* g_construct_files(alloc_t* allocator, u32 max_items)
-        {
-            files_t* f = g_construct<files_t>(allocator);
-            f->m_count   = 1;
-            f->m_array.init(8192, max_items);
-            f->m_nodes.init(8192, max_items);
-            ntree32::setup_tree(f->m_tree, (ntree32::nnode_t*)f->m_nodes.ptr());
-            ntree32::node_t default_folder_node = f->m_tree.new_node();
-            ASSERT(default_folder_node == c_empty_folder);
-            file_t* default_file = f->m_array.ptr_of(c_empty_folder);
-            default_file->m_filename  = c_empty_string;
-            default_file->m_extension = c_empty_string;
-            return f;
-        }
+        // files_t* g_construct_files(alloc_t* allocator, u32 max_items)
+        // {
+        //     files_t* f = g_construct<files_t>(allocator);
+        //     f->m_count   = 1;
+        //     f->m_array.init(8192, max_items);
+        //     f->m_nodes.init(8192, max_items);
+        //     ntree32::setup_tree(f->m_tree, (ntree32::nnode_t*)f->m_nodes.ptr());
+        //     ntree32::node_t default_folder_node = f->m_tree.new_node();
+        //     ASSERT(default_folder_node == c_empty_folder);
+        //     file_t* default_file = f->m_array.ptr_of(c_empty_folder);
+        //     default_file->m_filename  = c_empty_string;
+        //     default_file->m_extension = c_empty_string;
+        //     return f;
+        // }
 
-        void g_destruct_files(alloc_t* allocator, files_t*& files)
-        {
-            files->m_array.exit();
-            files->m_nodes.exit();
-            ntree32::teardown_tree(files->m_tree);
-            g_destruct(allocator, files);
-            files = nullptr;
-        }
+        // void g_destruct_files(alloc_t* allocator, files_t*& files)
+        // {
+        //     files->m_array.exit();
+        //     files->m_nodes.exit();
+        //     ntree32::teardown_tree(files->m_tree);
+        //     g_destruct(allocator, files);
+        //     files = nullptr;
+        // }
 
-        node_t     g_allocate_file(files_t* files, string_t filename, string_t extension)
-        {
-            node_t    path_node = files->m_tree.new_node();
-            file_t*   file      = files->m_array.ptr_of(path_node);
-            file->m_filename    = filename;
-            file->m_extension   = extension;
-            files->m_count += 1;
-            return path_node;
-        }
+        // node_t     g_allocate_file(files_t* files, string_t filename, string_t extension)
+        // {
+        //     node_t    path_node = files->m_tree.new_node();
+        //     file_t*   file      = files->m_array.ptr_of(path_node);
+        //     file->m_filename    = filename;
+        //     file->m_extension   = extension;
+        //     files->m_count += 1;
+        //     return path_node;
+        // }
 
     } // namespace npath
 } // namespace ncore

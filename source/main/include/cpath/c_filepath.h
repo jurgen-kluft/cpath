@@ -33,7 +33,7 @@ namespace ncore
 
         friend class fileinfo_t;
         friend class filedevice_t;
-        friend struct npath::instance_t;
+        friend struct npath::paths_t;
 
     public:
         filepath_t(npath::device_t* d);
