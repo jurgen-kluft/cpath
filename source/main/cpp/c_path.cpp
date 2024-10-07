@@ -103,6 +103,11 @@ namespace ncore
             crunes_t fulldirpath = _fulldirpath;
             fulldirpath.m_eos    = fulldirpath.m_end;
 
+            // TODO On Windows (e.g. 'e:\') search for ':' and on Linux/Unix (e.g. '/home/') search for '/'.
+            // On MacOS the path will start with '/' and the device name will end at the next '/', paths can
+            // also start with `~/` which is the home directory of the user. We can likely support that but
+            // it will require a device called `~` that will be the home directory of the user.
+
             crunes_t devicestr = nrunes::findSelectUntilIncluded(fulldirpath, ':');
 
             if (is_empty(devicestr))
