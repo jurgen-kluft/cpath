@@ -8,24 +8,16 @@
 #include "ccore/c_debug.h"
 #include "cbase/c_runes.h"
 
+#include "cpath/c_types.h"
+
 namespace ncore
 {
-    class filepath_t;
-
     //==============================================================================
     // dirpath_t
     // A path is never relative, it is always absolute. There is a way to make a path
     // 'appear' relative to another path, but the full path itself is always absolute.
     // When no root is provided, it is assumed to be the 'application' root.
     //==============================================================================
-
-    namespace npath
-    {
-        struct instance_t;
-        struct device_t;
-        typedef u32 node_t;
-        typedef u32 string_t;
-    } // namespace npath
 
     class dirpath_t
     {
@@ -41,10 +33,10 @@ namespace ncore
         friend struct npath::instance_t;
 
     public:
-        dirpath_t();
         dirpath_t(dirpath_t const& other);
         explicit dirpath_t(npath::device_t* device);
-        explicit dirpath_t(npath::device_t* device, npath::node_t path);
+        explicit dirpath_t(npath::device_t* device, npath::node_t base);
+        explicit dirpath_t(npath::device_t* device, npath::node_t base, npath::node_t path);
         ~dirpath_t();
 
         void clear();
@@ -65,12 +57,11 @@ namespace ncore
         dirpath_t       root() const;     // "E:\documents\old\inventory\books\sci-fi\", -> "documents"
         dirpath_t       parent() const;   // "E:\documents\old\inventory\books\sci-fi\", -> "documents\old\inventory\books\"
 
-        s32        depth() const;                  // "E:\documents\old\inventory\books\sci-fi\", -> 5
-        dirpath_t  up() const;                     // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\old\inventory\books\"
-        dirpath_t  down() const;                   // return the first child folder of this dirpath
-        void       down(crunes_t const& folder);   // return the child folder of this dirpath that matches the folder name
-        dirpath_t  next() const;                   // return the next sibling
-        filepath_t file(crunes_t const& filename); // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
+        s32        depth() const;                        // "E:\documents\old\inventory\books\sci-fi\", -> 5
+        dirpath_t  up() const;                           // "E:\documents\old\inventory\books\sci-fi\", -> "E:\documents\old\inventory\books\"
+        dirpath_t  down() const;                         // return the first child folder of this dirpath
+        dirpath_t  down(crunes_t const& folder) const;   // return the child folder of this dirpath that matches the folder name
+        filepath_t file(crunes_t const& filename) const; // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
 
         dirpath_t& operator=(dirpath_t const& other);
         s32        compare(const dirpath_t& other) const;

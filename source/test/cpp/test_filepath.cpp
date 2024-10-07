@@ -8,6 +8,7 @@
 
 #include "cpath/c_path.h"
 #include "cpath/c_filepath.h"
+#include "cpath/c_device.h"
 
 #include "cpath/test_allocator.h"
 
@@ -27,7 +28,10 @@ UNITTEST_SUITE_BEGIN(filepath)
 
         UNITTEST_TEST(constructor1)
         {
-            filepath_t p1;
+            npath::instance_t reg;
+            reg.init(Allocator);
+
+            filepath_t p1(reg.m_devices->get_default_device());
 
             CHECK_TRUE(p1.isEmpty());
         }

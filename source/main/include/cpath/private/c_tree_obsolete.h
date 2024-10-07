@@ -34,11 +34,12 @@ namespace ncore
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
         protected:
+            inline u32 temp_slot() const { return m_tree.m_free_index; }
+
             u32             m_active_nodes;
             u32             m_free_nodes;
             ntree32::tree_t m_tree;
-            memory_t        m_node_array;  // Virtual memory array of nnode_t[]
-            memory_t        m_color_array; // Red-black tree color array (bit array)
+            memory_t        m_node_array; // Virtual memory array of nnode_t[]
         };
     } // namespace npath
 } // namespace ncore

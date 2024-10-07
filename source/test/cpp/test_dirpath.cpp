@@ -8,6 +8,7 @@
 
 #include "cpath/c_path.h"
 #include "cpath/c_dirpath.h"
+#include "cpath/c_device.h"
 
 #include "cpath/test_allocator.h"
 
@@ -35,8 +36,23 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(constructor1)
         {
-            dirpath_t dirpath;
+            npath::instance_t reg;
+            reg.init(Allocator);
+
+            dirpath_t dirpath(reg.m_devices->get_default_device());
             CHECK_EQUAL(true, dirpath.isEmpty());
+
+            reg.exit(Allocator);
+        }
+
+        UNITTEST_TEST(register_device)
+        {
+            npath::instance_t reg;
+            reg.init(Allocator);
+
+            npath::device_t* device = reg.register_device(make_crunes("c:"));
+
+            reg.exit(Allocator);
         }
 
         UNITTEST_TEST(constructor2)
@@ -50,12 +66,8 @@ UNITTEST_SUITE_BEGIN(dirpath)
             crunes_t fullpath = make_crunes("/volume/the/name/is/johhnywalker/");
 #endif
 
-            dirpath_t       dirpath;
-            npath::string_t outdevicename;
-            npath::node_t   outnode;
-            reg.register_fulldirpath(fullpath, outdevicename, outnode);
-
-            CHECK_EQUAL(false, dirpath.isEmpty());
+            dirpath_t dirpath = reg.register_fulldirpath(fullpath);
+            CHECK_FALSE(dirpath.isEmpty());
 
             reg.exit(Allocator);
         }

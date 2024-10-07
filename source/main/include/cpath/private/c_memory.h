@@ -16,7 +16,7 @@ namespace ncore
             u64 m_committed; // Current committed item count (unit=item size), memory size = m_committed * item size
 
             // Note: You need to stick to a particular item size when using this interface
-
+            void init() { m_ptr = nullptr; m_reserved = 0; m_committed = 0; }
             void init(u64 initial_capacity, u64 max_capacity, u32 item_size = 1);
             void exit();
             void reset(u64 initial_capacity, u32 item_size = 1);
@@ -45,6 +45,7 @@ namespace ncore
             void reset(u64 initial_capacity) { m_memory.reset(initial_capacity, sizeof(T)); }
             void add_capacity(u64 add_capacity) { m_memory.add_capacity(add_capacity, sizeof(T)); }
 
+            inline T* ptr() const { return (T*)m_memory.m_ptr; }
             void ensure_capacity(u64 capacity, u32 add_capacity_when_needed = 1024 * 1024) { m_memory.ensure_capacity(capacity, add_capacity_when_needed); }
 
             T* allocate(u32 items) { return (T*)m_memory.allocate((u8*&)m_memory.m_ptr, items, sizeof(T)); }
