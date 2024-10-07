@@ -8,7 +8,7 @@
 
 #include "cpath/c_path.h"
 #include "cpath/private/c_strings.h"
-#include "cpath/private/c_folder_file.h"
+#include "cpath/private/c_folders.h"
 
 namespace ncore
 {
@@ -18,8 +18,8 @@ namespace ncore
         {
             folders_t* f = g_construct<folders_t>(allocator);
             f->m_count   = 1;
-            f->m_array.init(8192, max_items);
-            f->m_nodes.init(8192, max_items);
+            g_init_objects(f->m_array, 8192, max_items);
+            g_init_objects(f->m_nodes, 8192, max_items);
             ntree32::setup_tree(f->m_tree, (ntree32::nnode_t*)f->m_nodes.ptr());
             ntree32::node_t default_folder_node = f->m_tree.new_node();
             ASSERT(default_folder_node == c_empty_folder);
@@ -30,8 +30,8 @@ namespace ncore
 
         void g_destruct_folders(alloc_t* allocator, folders_t*& folders)
         {
-            folders->m_array.exit();
-            folders->m_nodes.exit();
+            g_exit_objects(folders->m_array);
+            g_exit_objects(folders->m_nodes);
             ntree32::teardown_tree(folders->m_tree);
             g_destruct(allocator, folders);
             folders = nullptr;
@@ -44,7 +44,6 @@ namespace ncore
             folder->m_parent    = c_invalid_folder;
             folder->m_name      = name;
             folder->m_folders   = c_invalid_node;
-            folder->m_files     = c_invalid_node;
             folders->m_count += 1;
             return path_node;
         }

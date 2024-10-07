@@ -7,33 +7,40 @@ namespace ncore
     {
         const u32 c_capacity_bias = 4;
 
-        void memory_t::init(u64 initial_capacity, u64 max_capacity, u32 item_size)
+        void g_init_memory(memory_t& m)
+        {
+            m.m_ptr = nullptr;
+            m.m_reserved = 0;
+            m.m_committed = 0;
+        }
+
+        void g_init_memory(memory_t& m, u64 initial_capacity, u64 max_capacity, u32 item_size)
         {
             u32 const page_size = nvmem::page_size();
 
-            m_ptr                    = nullptr;
+            m.m_ptr                    = nullptr;
             u64 const reserved_size  = ((max_capacity * item_size + page_size - 1) / page_size) * page_size;
             u64 const committed_size = ((initial_capacity * item_size + page_size - 1) / page_size) * page_size;
 
             // u64 address_range, u32& page_size, u32 reserve_flags, void*& baseptr
             void* baseptr = nullptr;
             nvmem::reserve(reserved_size, nvmem::ReadWrite, baseptr);
-            m_ptr = (u8*)baseptr;
+            m.m_ptr = (u8*)baseptr;
 
-            if (m_ptr && committed_size > 0)
+            if (m.m_ptr && committed_size > 0)
             {
-                nvmem::commit(m_ptr, committed_size);
-                m_committed = committed_size / item_size;
+                nvmem::commit(m.m_ptr, committed_size);
+                m.m_committed = committed_size / item_size;
             }
-            m_reserved = reserved_size / item_size;
+            m.m_reserved = reserved_size / item_size;
         }
 
-        void memory_t::exit()
+        void g_exit_memory(memory_t& m)
         {
-            nvmem::release(m_ptr, m_reserved);
-            m_ptr       = nullptr;
-            m_reserved  = 0;
-            m_committed = 0;
+            nvmem::release(m.m_ptr, m.m_reserved);
+            m.m_ptr       = nullptr;
+            m.m_reserved  = 0;
+            m.m_committed = 0;
         }
 
         void memory_t::reset(u64 initial_capacity, u32 item_size)

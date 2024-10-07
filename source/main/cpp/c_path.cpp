@@ -11,41 +11,13 @@
 #include "cpath/c_filepath.h"
 #include "cpath/private/c_strings.h"
 #include "cpath/private/c_parser.h"
-#include "cpath/private/c_folder_file.h"
+#include "cpath/private/c_folders.h"
 #include "cpath/c_device.h"
 
 namespace ncore
 {
     namespace npath
     {
-        static void s_init_devices(alloc_t* allocator, devices_t* devices, paths_t* instance, strings_t* strings)
-        {
-            s32 const c_extra_devices = 2; // For 'find' and 'temp' slots
-            devices->m_num_devices    = 1;
-            devices->m_max_devices    = 62;
-            devices->m_arr_devices    = g_allocate_array<device_t*>(allocator, devices->m_max_devices + c_extra_devices);
-            for (idevice_t i = 0; i < devices->m_max_devices; ++i)
-                devices->m_arr_devices[i] = g_construct<device_t>(allocator, instance, c_empty_string, c_empty_node, i);
-            for (idevice_t i = devices->m_max_devices; i < devices->m_max_devices + c_extra_devices; ++i)
-                devices->m_arr_devices[i] = nullptr;
-            devices->m_device_nodes = g_allocate_array<ntree32::nnode_t>(allocator, devices->m_max_devices + c_extra_devices);
-            ntree32::setup_tree(devices->m_device_tree, devices->m_device_nodes);
-            devices->m_device_tree_root = c_invalid_node;
-
-            device_t* default_device = devices->m_arr_devices[0];
-        }
-
-        static void s_exit_devices(alloc_t* allocator, devices_t*& devices)
-        {
-            for (s32 i = 0; i < devices->m_max_devices; ++i)
-                g_destruct(allocator, devices->m_arr_devices[i]);
-            g_deallocate_array(allocator, devices->m_arr_devices);
-            g_deallocate_array(allocator, devices->m_device_nodes);
-            ntree32::teardown_tree(devices->m_device_tree);
-            g_destruct(allocator, devices);
-            devices = nullptr;
-        }
-
         paths_t* g_construct_paths(alloc_t* allocator, u32 max_items)
         {
             paths_t* paths     = g_construct<paths_t>(allocator);
@@ -55,19 +27,16 @@ namespace ncore
             string_t default_string = paths->m_strings->insert(make_crunes("nil"));
             ASSERT(default_string == c_empty_string);
 
+            paths->m_devices = g_construct_devices(allocator, paths, paths->m_strings);
             paths->m_folders = g_construct_folders(allocator, max_items);
             // m_files   = g_construct_files(allocator, max_items);
-
-            paths->m_devices = g_construct<devices_t>(paths->m_allocator);
-            s_init_devices(allocator, paths->m_devices, paths, paths->m_strings);
 
             return paths;
         }
 
         void g_destruct_paths(alloc_t* allocator, paths_t*& paths)
         {
-            s_exit_devices(allocator, paths->m_devices);
-
+            g_destruct_devices(allocator, paths->m_devices);
             // g_destruct_files(allocator, m_files);
             g_destruct_folders(allocator, paths->m_folders);
             g_destruct_strings(allocator, paths->m_strings);

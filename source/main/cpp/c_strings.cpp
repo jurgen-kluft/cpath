@@ -29,9 +29,9 @@ namespace ncore
 
         static void s_init_members(strings_t::members_t* m)
         {
-            m->m_data_buffer.init();
+            g_init_memory(m->m_data_buffer);
+            g_init_memory(m->m_str_buffer);
             m->m_data_ptr = nullptr;
-            m->m_str_buffer.init();
             m->m_str_root = c_invalid_node;
             ntree32::g_init(m->m_str_tree);
         }
@@ -47,11 +47,11 @@ namespace ncore
             strings->m_data    = g_construct<strings_t::members_t>(allocator);
             s_init_members(strings->m_data);
 
-            strings->m_data->m_data_buffer.init(8192, max_items, sizeof(u8));
-            strings->m_data->m_str_buffer.init(8192, max_items, sizeof(strings_t::str_t));
+            g_init_memory(strings->m_data->m_data_buffer, 8192, max_items, sizeof(u8));
+            g_init_memory(strings->m_data->m_str_buffer, 8192, max_items, sizeof(strings_t::str_t));
 
             const s32 c_extra_size = 2;
-            strings->m_data->m_node_array.init(8192, max_items + c_extra_size, sizeof(ntree32::nnode_t));
+            g_init_memory(strings->m_data->m_node_array, 8192, max_items + c_extra_size, sizeof(ntree32::nnode_t));
             ntree32::setup_tree(strings->m_data->m_str_tree, (ntree32::nnode_t*)strings->m_data->m_node_array.m_ptr);
 
             strings->m_data->m_data_ptr = strings->m_data->m_data_buffer.m_ptr;
@@ -62,11 +62,11 @@ namespace ncore
 
         void g_destruct_strings(alloc_t* allocator, strings_t*& strings)
         {
-            strings->m_data->m_str_buffer.exit();
-            strings->m_data->m_data_buffer.exit();
-            strings->m_data->m_data_ptr = nullptr;
-            strings->m_data->m_node_array.exit();
+            g_exit_memory( strings->m_data->m_str_buffer);
+            g_exit_memory(strings->m_data->m_data_buffer);
+            g_exit_memory(strings->m_data->m_node_array);
             ntree32::teardown_tree(strings->m_data->m_str_tree);
+            strings->m_data->m_data_ptr = nullptr;
         }
 
         string_t strings_t::attach(string_t node) { return node; }

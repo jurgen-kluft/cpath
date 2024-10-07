@@ -18,8 +18,6 @@ namespace ncore
     {
         struct device_t
         {
-            device_t(paths_t* owner, string_t name, node_t path, idevice_t index);
-
             inline string_t name() const { return m_name; }
 
             void finalize(devices_t* devices);
@@ -29,7 +27,6 @@ namespace ncore
 
             node_t get_parent_path(node_t path) const;
             node_t get_first_child_dir(node_t path) const;
-            node_t get_first_child_file(node_t path) const;
             node_t add_dir(node_t current_dir, string_t dir);
             node_t add_file(node_t current_dir, string_t file);
 
@@ -39,14 +36,17 @@ namespace ncore
 
             DCORE_CLASS_PLACEMENT_NEW_DELETE
 
-            paths_t* m_owner;
-            string_t    m_name;       // name (e.g. "appdir")
-            node_t      m_path;       // [folder_t] path (e.g. "data\bin.pc" or "e:\")
-            idevice_t   m_index;      // index into m_pathreg->m_arr_devices
-            idevice_t   m_redirector; // -> device("e:\")
-            s32         m_userdata1;  //
-            s32         m_userdata2;  //
+            paths_t*  m_owner;
+            string_t  m_name;       // name (e.g. "appdir")
+            node_t    m_path;       // [folder_t] path (e.g. "data\bin.pc" or "e:\")
+            idevice_t m_index;      // index into m_pathreg->m_arr_devices
+            idevice_t m_redirector; // -> device("e:\")
+            s32       m_userdata1;  //
+            s32       m_userdata2;  //
         };
+
+        device_t* g_construct_device(alloc_t* allocator, paths_t* owner, idevice_t index);
+        void      g_destruct_device(alloc_t* allocator, device_t*& device);
 
         struct devices_t
         {
@@ -55,7 +55,7 @@ namespace ncore
             device_t* get_device(idevice_t index) const;
             device_t* get_default_device() const;
 
-            paths_t*       m_owner;
+            paths_t*          m_owner;
             strings_t*        m_strings;
             device_t**        m_arr_devices;
             ntree32::nnode_t* m_device_nodes;
@@ -65,6 +65,9 @@ namespace ncore
             s32               m_max_devices;
             DCORE_CLASS_PLACEMENT_NEW_DELETE
         };
+
+        devices_t* g_construct_devices(alloc_t* allocator, paths_t* owner, strings_t* strings);
+        void       g_destruct_devices(alloc_t* allocator, devices_t*& devices);
 
     } // namespace npath
 

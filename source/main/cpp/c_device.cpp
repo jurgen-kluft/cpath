@@ -11,7 +11,7 @@
 #include "cpath/c_filepath.h"
 #include "cpath/private/c_parser.h"
 #include "cpath/private/c_strings.h"
-#include "cpath/private/c_folder_file.h"
+#include "cpath/private/c_folders.h"
 #include "cpath/c_device.h"
 
 namespace ncore
@@ -24,11 +24,6 @@ namespace ncore
         // device
         // --------------------------------------------------------------------------------------------------------------
         // --------------------------------------------------------------------------------------------------------------
-
-        device_t::device_t(paths_t* owner, string_t name, node_t path, idevice_t index) : m_owner(owner), m_name(name), m_path(path), m_index(index), m_redirector(c_invalid_device), m_userdata1(0), m_userdata2(0)
-        {
-            // constructor
-        }
 
         // Once all devices are registered we can connect them through their path
         void device_t::finalize(devices_t* devices)
@@ -69,7 +64,7 @@ namespace ncore
         {
             folder.m_str = folder.m_end;
             folder.m_end = folder.m_eos;
-            folder = nrunes::findSelectUntilIncluded(folder, slash);
+            folder       = nrunes::findSelectUntilIncluded(folder, slash);
             return !is_empty(folder);
         }
 
@@ -154,16 +149,16 @@ namespace ncore
 
         static s8 s_compare_str_with_folder(u32 find_str, u32 _node_folder, void const* user_data)
         {
-            paths_t const* const root        = (paths_t const*)user_data;
-            folder_t const* const   node_folder = root->m_folders->m_array.ptr_of(_node_folder);
+            paths_t const* const  root        = (paths_t const*)user_data;
+            folder_t const* const node_folder = root->m_folders->m_array.ptr_of(_node_folder);
             return root->m_strings->compare(find_str, node_folder->m_name);
         }
 
         static s8 s_compare_folder_with_folder(u32 _find_folder, u32 _node_folder, void const* user_data)
         {
-            paths_t const* const root        = (paths_t const*)user_data;
-            folder_t const* const   find_folder = root->m_folders->m_array.ptr_of(_find_folder);
-            folder_t const* const   node_folder = root->m_folders->m_array.ptr_of(_node_folder);
+            paths_t const* const  root        = (paths_t const*)user_data;
+            folder_t const* const find_folder = root->m_folders->m_array.ptr_of(_find_folder);
+            folder_t const* const node_folder = root->m_folders->m_array.ptr_of(_node_folder);
             return root->m_strings->compare(find_folder->m_name, node_folder->m_name);
         }
 
@@ -183,7 +178,6 @@ namespace ncore
                 folder_t* new_folder  = m_owner->m_folders->m_array.ptr_of(found_node);
                 new_folder->m_name    = str;
                 new_folder->m_folders = c_invalid_node;
-                new_folder->m_files   = c_invalid_node;
                 new_folder->m_parent  = parent;
             }
             return found_node;
@@ -194,16 +188,18 @@ namespace ncore
             folder_t* folder = m_owner->m_folders->m_array.ptr_of(path);
             return folder->m_parent;
         }
+
         node_t device_t::get_first_child_dir(node_t path) const
         {
-            // todo
-            return c_invalid_node;
-        }
+            folder_t* folder     = m_owner->m_folders->m_array.ptr_of(path);
+            node_t    first_child = ntree32::c_invalid_node;
+            if (folder->m_folders != ntree32::c_invalid_node)
+            {
+                ntree32::iterator_t it = ntree32::iterate(m_owner->m_folders->m_tree, folder->m_folders);
+                first_child             = it.m_it;
+            }
 
-        node_t device_t::get_first_child_file(node_t path) const
-        {
-            // todo
-            return c_invalid_node;
+            return first_child;
         }
 
         // --------------------------------------------------------------------------------------------------------------
@@ -266,6 +262,59 @@ namespace ncore
         }
 
         device_t* devices_t::get_default_device() const { return m_arr_devices[0]; }
+
+        device_t* g_construct_device(alloc_t* allocator, paths_t* owner, idevice_t index)
+        {
+            device_t* device = g_construct<device_t>(allocator);
+            device->m_owner      = owner;
+            device->m_name       = c_invalid_string;
+            device->m_path       = c_invalid_node;
+            device->m_index      = index;
+            device->m_redirector = c_invalid_device;
+            device->m_userdata1  = 0;
+            device->m_userdata2  = 0;
+            return device;
+        }
+
+        void g_destruct_device(alloc_t* allocator, device_t*& device)
+        {
+            g_destruct(allocator, device);
+            device = nullptr;
+        }
+
+        devices_t* g_construct_devices(alloc_t* allocator, paths_t* owner, strings_t* strings)
+        {
+            devices_t* devices = g_construct<devices_t>(allocator);
+            devices->m_owner = owner;
+            devices->m_strings = strings;
+
+            s32 const c_extra_devices = 2; // For 'find' and 'temp' slots
+            devices->m_num_devices    = 1;
+            devices->m_max_devices    = 62;
+            devices->m_arr_devices    = g_allocate_array<device_t*>(allocator, devices->m_max_devices + c_extra_devices);
+            for (idevice_t i = 0; i < devices->m_max_devices; ++i)
+                devices->m_arr_devices[i] = g_construct_device(allocator, owner, i);
+            for (idevice_t i = devices->m_max_devices; i < devices->m_max_devices + c_extra_devices; ++i)
+                devices->m_arr_devices[i] = nullptr;
+            devices->m_device_nodes = g_allocate_array<ntree32::nnode_t>(allocator, devices->m_max_devices + c_extra_devices);
+            ntree32::setup_tree(devices->m_device_tree, devices->m_device_nodes);
+            devices->m_device_tree_root = c_invalid_node;
+
+            device_t* default_device = devices->m_arr_devices[0];
+
+            return devices;
+        }
+
+        void g_destruct_devices(alloc_t* allocator, devices_t*& devices)
+        {
+            for (s32 i = 0; i < devices->m_max_devices; ++i)
+                g_destruct(allocator, devices->m_arr_devices[i]);
+            g_deallocate_array(allocator, devices->m_arr_devices);
+            g_deallocate_array(allocator, devices->m_device_nodes);
+            ntree32::teardown_tree(devices->m_device_tree);
+            g_destruct(allocator, devices);
+            devices = nullptr;
+        }
 
     } // namespace npath
 } // namespace ncore
