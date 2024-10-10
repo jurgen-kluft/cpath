@@ -36,10 +36,6 @@ func GetPackage() *denv.Package {
 	// 'cpath' unittest project
 	maintest := denv.SetupDefaultCppTestProject("cpath"+"_test", "github.com\\jurgen-kluft\\cpath")
 	maintest.Dependencies = append(maintest.Dependencies, cunittestpkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, ccorepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, cbasepkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, cvmempkg.GetMainLib())
-	maintest.Dependencies = append(maintest.Dependencies, ctimepkg.GetMainLib())
 	maintest.Dependencies = append(maintest.Dependencies, mainlib)
 
 	mainpkg.AddMainLib(mainlib)
