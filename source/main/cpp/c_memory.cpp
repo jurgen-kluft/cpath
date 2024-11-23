@@ -24,7 +24,7 @@ namespace ncore
 
             // u64 address_range, u32& page_size, u32 reserve_flags, void*& baseptr
             void* baseptr = nullptr;
-            nvmem::reserve(reserved_size, nvmem::ReadWrite, baseptr);
+            nvmem::reserve(reserved_size, nvmem::nprotect::ReadWrite, baseptr);
             m.m_ptr = (u8*)baseptr;
 
             if (m.m_ptr && committed_size > 0)
