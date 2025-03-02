@@ -141,6 +141,21 @@ namespace ncore
             while (folder->m_parent != c_invalid_node)
             {
                 strlen += m_owner->m_strings->get_len(folder->m_name);
+                folder = m_owner->m_folders->m_array.ptr_of(folder->m_parent);
+            }
+
+            return strlen;
+        }
+
+        s32 device_t::to_strlen(node_t path) const
+        {
+            // our 'path' are connected up to the main device, so we only need to walk the path
+            s32       strlen = 0;
+            folder_t* folder = m_owner->m_folders->m_array.ptr_of(path);
+            while (folder->m_parent != c_invalid_node)
+            {
+                strlen += m_owner->m_strings->get_len(folder->m_name);
+                folder = m_owner->m_folders->m_array.ptr_of(folder->m_parent);
             }
 
             return strlen;

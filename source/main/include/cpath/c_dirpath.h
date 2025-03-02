@@ -64,9 +64,8 @@ namespace ncore
         filepath_t filename(crunes_t const& filename) const; // "E:\documents\old\inventory\books\sci-fi\" + "perry-rhodan.pdf", -> "E:\documents\old\inventory\books\sci-fi\perry-rhodan.pdf"
 
         dirpath_t& operator=(dirpath_t const& other);
+
         s32        compare(const dirpath_t& other) const;
-        bool       operator==(dirpath_t const& other) const { return compare(other) == 0; }
-        bool       operator!=(dirpath_t const& other) const { return compare(other) != 0; }
 
         // (device = "E", base = "documents\old\inventory\", path = "books\sci-fi\") -> "books\sci-fi\"
         void relative_path_to_string(runes_t& str) const;

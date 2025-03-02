@@ -20,7 +20,7 @@ namespace ncore
         {
             ifolder_t m_parent;  // folder parent (index into m_folder_array)
             string_t  m_name;    // folder name
-            node_t    m_folders; // Tree of folders (tree root node)
+            node_t    m_folders; // sub folders (tree root node)
             void      reset()
             {
                 m_parent  = c_invalid_folder;

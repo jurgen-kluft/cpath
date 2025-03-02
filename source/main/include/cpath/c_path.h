@@ -24,11 +24,16 @@ namespace ncore
             node_t    allocate_folder(string_t name);
 
             // -----------------------------------------------------------
+            void   register_filename(crunes_t const& filename, string_t& out_name, string_t& out_ext);
+
+            // -----------------------------------------------------------
             dirpath_t  register_fulldirpath(crunes_t const& fulldirpath);
             filepath_t register_fullfilepath(crunes_t const& fullfilepath);
 
             // -----------------------------------------------------------
+            string_t unregister_string(string_t str);
 
+            // -----------------------------------------------------------
             string_t find_string(crunes_t const& str) const;
             string_t find_or_insert_string(crunes_t const& str);
 

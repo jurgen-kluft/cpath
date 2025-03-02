@@ -49,6 +49,14 @@ namespace ncore
 
         node_t paths_t::allocate_folder(string_t name) { return g_allocate_folder(m_folders, name); }
 
+        void paths_t::register_filename(crunes_t const& filename, string_t& out_name, string_t& out_ext)
+        {
+            crunes_t name = nrunes::findSelectUntil(filename, '.');
+            crunes_t ext  = nrunes::selectAfterExclude(filename, name);
+            out_name      = m_strings->insert(name);
+            out_ext       = m_strings->insert(ext);
+        }
+
         string_t paths_t::find_string(const crunes_t& namestr) const
         {
             string_t name = m_strings->find(namestr);
@@ -148,6 +156,8 @@ namespace ncore
 
             return filepath_t(this->m_devices->get_default_device());
         }
+
+        string_t paths_t::unregister_string(string_t str) { return m_strings->detach(str); }
 
         //  Objectives:
         //  - Sharing of underlying strings

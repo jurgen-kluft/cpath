@@ -10,8 +10,6 @@
 #include "cpath/c_filepath.h"
 #include "cpath/c_device.h"
 
-#include "cpath/test_allocator.h"
-
 using namespace ncore;
 
 UNITTEST_SUITE_BEGIN(filepath)

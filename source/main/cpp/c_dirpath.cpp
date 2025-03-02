@@ -43,14 +43,20 @@ namespace ncore
         m_path   = path;
     }
 
-    dirpath_t::~dirpath_t() {}
+    dirpath_t::~dirpath_t()
+    {
+        npath::paths_t* root = m_device->m_owner;
+        m_device             = nullptr;
+        m_base               = root->unregister_string(m_base);
+        m_path               = root->unregister_string(m_path);
+    }
 
     void dirpath_t::clear()
     {
         npath::paths_t* root = m_device->m_owner;
         m_device             = root->m_devices->get_default_device();
-        m_base               = npath::c_empty_node;
-        m_path               = npath::c_empty_node;
+        m_base               = m_device->m_owner->unregister_string(m_base);
+        m_path               = m_device->m_owner->unregister_string(m_path);
     }
 
     bool dirpath_t::isEmpty() const { return m_base == npath::c_empty_node && m_path == npath::c_empty_node; }
@@ -59,11 +65,10 @@ namespace ncore
 
     dirpath_t dirpath_t::makeRelative(const dirpath_t& dirpath) const
     {
-        // try and find an overlap of folder
-        //   this    = [a b c d e f]     base = f, path = f
-        //   dirpath = [e f g h i j]     base = j, path = j
-        //   overlap = [e f]
-        //   result  = [e f g h i j]     base = j, path = j
+        //   this    = [a b c d e f]                 base = f, path = f
+        //   dirpath = [a b c d e f g h i j]         base = j, path = j
+        //   match   = [a b c d e f]
+        //   result  = [a b c d e f] + [g h i j]     base = f, path = j
 
         // TODO
 
@@ -164,11 +169,12 @@ namespace ncore
         return dirpath_t(m_device, m_base, path);
     }
 
-    filepath_t dirpath_t::filename(crunes_t const& filename) const
+    filepath_t dirpath_t::filename(crunes_t const& _filename) const
     {
-        // TODO
-
-        return filepath_t(m_device);
+        npath::string_t filename;
+        npath::string_t fileext;
+        m_device->m_owner->register_filename(_filename, filename, fileext);
+        return filepath_t(*this, filename, fileext);
     }
 
     static s8 s_compare_devices(npath::device_t* deviceA, npath::device_t* deviceB)
@@ -183,26 +189,8 @@ namespace ncore
     s32 dirpath_t::compare(const dirpath_t& other) const
     {
         s8 const de = s_compare_devices(m_device, other.m_device);
-        if (de != 0)
-            return de;
-        s32 const pe = other.m_device->m_owner->compare_str(m_path, other.m_path);
-        return pe;
+        return (de == 0) ? 0 : other.m_device->m_owner->compare_str(m_path, other.m_path);
     }
-
-    // void dirpath_t::to_string(runes_t& str) const
-    // {
-    //     npath::paths_t* root = m_device->m_owner;
-    //     m_device->to_string(str);
-    //     root->to_string(m_path, str);
-    // }
-
-    // s32 dirpath_t::to_strlen() const
-    // {
-    //     npath::paths_t* root = m_device->m_owner;
-    //     s32            len  = m_device->to_strlen();
-    //     len += root->to_strlen(m_path);
-    //     return len;
-    // }
 
     void dirpath_t::relative_path_to_string(runes_t& str) const {}
     s32  dirpath_t::relative_path_to_strlen() const { return 0; }

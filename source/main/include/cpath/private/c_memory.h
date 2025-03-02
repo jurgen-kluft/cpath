@@ -45,7 +45,7 @@ namespace ncore
             void add_capacity(u64 add_capacity) { m_memory.add_capacity(add_capacity, sizeof(T)); }
 
             inline T* ptr() const { return (T*)m_memory.m_ptr; }
-            void      ensure_capacity(u64 capacity, u32 add_capacity_when_needed = 1024 * 1024) { m_memory.ensure_capacity(capacity, add_capacity_when_needed); }
+            void      ensure_capacity(u64 capacity, u32 add_capacity_when_needed = 64 * 1024) { m_memory.ensure_capacity(capacity, add_capacity_when_needed); }
 
             T* allocate(u32 items) { return (T*)m_memory.allocate((u8*&)m_memory.m_ptr, items, sizeof(T)); }
             T* reserve(u32 items) { return (T*)m_memory.reserve(m_memory.m_ptr, items, sizeof(T)); }
