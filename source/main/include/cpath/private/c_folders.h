@@ -31,10 +31,10 @@ namespace ncore
 
         struct folders_t
         {
-            ntree32::tree_t             m_tree;
-            u32                         m_count;
-            objects_t<ntree32::nnode_t> m_nodes;
-            objects_t<folder_t>         m_array;
+            ntree32::tree_t           m_tree;
+            u32                       m_count;
+            vpool_t<ntree32::nnode_t> m_nodes;
+            vpool_t<folder_t>         m_array;
             DCORE_CLASS_PLACEMENT_NEW_DELETE
         };
 
@@ -53,8 +53,8 @@ namespace ncore
         // {
         //     ntree32::tree_t             m_tree; // And extensions
         //     u32                         m_count;
-        //     objects_t<ntree32::nnode_t> m_nodes;
-        //     objects_t<file_t>           m_array; // A file consists of a filename and an extension
+        //     vpool_t<ntree32::nnode_t> m_nodes;
+        //     vpool_t<file_t>           m_array; // A file consists of a filename and an extension
         //     DCORE_CLASS_PLACEMENT_NEW_DELETE
         // };
 

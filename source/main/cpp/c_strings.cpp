@@ -16,21 +16,21 @@ namespace ncore
     {
         struct strings_t::members_t
         {
-            memory_t        m_data_buffer; // Virtual memory for holding utf8 strings
+            varena_t        m_data_buffer; // Virtual memory for holding utf8 strings
             u8*             m_data_ptr;    // Cursor in the data buffer
-            memory_t        m_str_buffer;  // Virtual memory for holding string_t[]
+            varena_t        m_str_buffer;  // Virtual memory for holding string_t[]
             u32             m_size;        // Number of strings allocated
             ntree32::node_t m_str_root;    // Tree root, all strings
             ntree32::tree_t m_str_tree;    // Red-black tree for strings
-            memory_t        m_node_array;  // Virtual memory array of nnode_t[]
+            varena_t        m_node_array;  // Virtual memory array of nnode_t[]
 
             DCORE_CLASS_PLACEMENT_NEW_DELETE
         };
 
         static void s_init_members(strings_t::members_t* m)
         {
-            g_init_memory(m->m_data_buffer);
-            g_init_memory(m->m_str_buffer);
+            g_init_arena(m->m_data_buffer);
+            g_init_arena(m->m_str_buffer);
             m->m_data_ptr = nullptr;
             m->m_str_root = c_invalid_node;
             ntree32::g_init(m->m_str_tree);
@@ -47,11 +47,11 @@ namespace ncore
             strings->m_data    = g_construct<strings_t::members_t>(allocator);
             s_init_members(strings->m_data);
 
-            g_init_memory(strings->m_data->m_data_buffer, 8192, max_items, sizeof(u8));
-            g_init_memory(strings->m_data->m_str_buffer, 8192, max_items, sizeof(strings_t::str_t));
+            g_init_arena(strings->m_data->m_data_buffer, 8192, max_items, sizeof(u8));
+            g_init_arena(strings->m_data->m_str_buffer, 8192, max_items, sizeof(strings_t::str_t));
 
             const s32 c_extra_size = 2;
-            g_init_memory(strings->m_data->m_node_array, 8192, max_items + c_extra_size, sizeof(ntree32::nnode_t));
+            g_init_arena(strings->m_data->m_node_array, 8192, max_items + c_extra_size, sizeof(ntree32::nnode_t));
             ntree32::setup_tree(strings->m_data->m_str_tree, (ntree32::nnode_t*)strings->m_data->m_node_array.m_ptr);
 
             strings->m_data->m_data_ptr = strings->m_data->m_data_buffer.m_ptr;
@@ -62,9 +62,9 @@ namespace ncore
 
         void g_destruct_strings(alloc_t* allocator, strings_t*& strings)
         {
-            g_exit_memory(strings->m_data->m_str_buffer);
-            g_exit_memory(strings->m_data->m_data_buffer);
-            g_exit_memory(strings->m_data->m_node_array);
+            g_teardown_arena(strings->m_data->m_str_buffer);
+            g_teardown_arena(strings->m_data->m_data_buffer);
+            g_teardown_arena(strings->m_data->m_node_array);
             ntree32::teardown_tree(strings->m_data->m_str_tree);
             strings->m_data->m_data_ptr = nullptr;
             g_destruct(allocator, strings->m_data);

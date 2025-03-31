@@ -7,14 +7,14 @@ namespace ncore
     {
         const u32 c_capacity_bias = 4;
 
-        void g_init_memory(memory_t& m)
+        void g_init_arena(varena_t& m)
         {
             m.m_ptr = nullptr;
             m.m_reserved = 0;
             m.m_committed = 0;
         }
 
-        void g_init_memory(memory_t& m, u64 initial_capacity, u64 max_capacity, u32 item_size)
+        void g_init_arena(varena_t& m, u64 initial_capacity, u64 max_capacity, u32 item_size)
         {
             u32 const page_size = nvmem::page_size();
 
@@ -35,7 +35,7 @@ namespace ncore
             m.m_reserved = reserved_size / item_size;
         }
 
-        void g_exit_memory(memory_t& m)
+        void g_teardown_arena(varena_t& m)
         {
             nvmem::release(m.m_ptr, m.m_reserved);
             m.m_ptr       = nullptr;
@@ -43,7 +43,7 @@ namespace ncore
             m.m_committed = 0;
         }
 
-        void memory_t::reset(u64 initial_capacity, u32 item_size)
+        void varena_t::reset(u64 initial_capacity, u32 item_size)
         {
             // Figure out how much memory we need to uncommit
             u32 const page_size      = nvmem::page_size();
@@ -58,7 +58,7 @@ namespace ncore
             }
         }
 
-        void memory_t::add_capacity(u64 capacity, u32 item_size)
+        void varena_t::add_capacity(u64 capacity, u32 item_size)
         {
             // commit size = capacity * item size
             u32 const page_size   = nvmem::page_size();
@@ -71,26 +71,26 @@ namespace ncore
             }
         }
 
-        void memory_t::ensure_capacity(u32 index, u32 item_size, u32 add_capacity_when_needed)
+        void varena_t::ensure_capacity(u32 index, u32 item_size, u32 add_capacity_when_needed)
         {
             if ((index + c_capacity_bias) >= m_committed)
                 add_capacity((index + c_capacity_bias) - m_committed, item_size);
         }
 
-        u8* memory_t::allocate(u8*& ptr, u32 items, u32 item_size)
+        u8* varena_t::allocate(u8*& ptr, u32 items, u32 item_size)
         {
             reserve(ptr, items, item_size);
             return commit(ptr, items, item_size);
         }
 
-        u8* memory_t::reserve(u8* ptr, u32 items, u32 item_size)
+        u8* varena_t::reserve(u8* ptr, u32 items, u32 item_size)
         {
             if ((ptr + items * item_size) > (m_ptr + m_committed * item_size))
                 add_capacity(items + c_capacity_bias, item_size);
             return ptr;
         }
 
-        u8* memory_t::commit(u8*& ptr, u32 items, u32 item_size)
+        u8* varena_t::commit(u8*& ptr, u32 items, u32 item_size)
         {
             u8* p = ptr;
             ptr += (items * item_size);

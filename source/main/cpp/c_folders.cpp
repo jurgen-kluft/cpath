@@ -18,8 +18,8 @@ namespace ncore
         {
             folders_t* f = g_construct<folders_t>(allocator);
             f->m_count   = 1;
-            g_init_objects(f->m_array, 8192, max_items);
-            g_init_objects(f->m_nodes, 8192, max_items);
+            g_setup_vpool(f->m_array, 8192, max_items);
+            g_setup_vpool(f->m_nodes, 8192, max_items);
             ntree32::setup_tree(f->m_tree, (ntree32::nnode_t*)f->m_nodes.ptr());
             ntree32::node_t default_folder_node = f->m_tree.new_node();
             ASSERT(default_folder_node == c_empty_folder);
@@ -30,8 +30,8 @@ namespace ncore
 
         void g_destruct_folders(alloc_t* allocator, folders_t*& folders)
         {
-            g_exit_objects(folders->m_array);
-            g_exit_objects(folders->m_nodes);
+            g_teardown_vpool(folders->m_array);
+            g_teardown_vpool(folders->m_nodes);
             ntree32::teardown_tree(folders->m_tree);
             g_destruct(allocator, folders);
             folders = nullptr;
