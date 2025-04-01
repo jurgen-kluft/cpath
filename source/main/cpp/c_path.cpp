@@ -32,6 +32,12 @@ namespace ncore
             return paths;
         }
 
+        paths_t* g_construct_paths(alloc_t* allocator)
+        {
+            // default to 1GB
+            return g_construct_paths(allocator, 1024 * 1024 * 1024);
+        }
+
         void g_destruct_paths(alloc_t* allocator, paths_t*& paths)
         {
             g_destruct_devices(allocator, paths->m_devices);

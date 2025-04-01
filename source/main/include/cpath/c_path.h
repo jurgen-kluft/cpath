@@ -54,7 +54,8 @@ namespace ncore
             folders_t* m_folders;
         };
 
-        paths_t* g_construct_paths(alloc_t* allocator, u32 max_items = 1024 * 1024 * 1024);
+        paths_t* g_construct_paths(alloc_t* allocator, u32 max_items);
+        paths_t* g_construct_paths(alloc_t* allocator);
         void     g_destruct_paths(alloc_t* allocator, paths_t*& paths);
 
     } // namespace npath

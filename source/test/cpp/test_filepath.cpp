@@ -26,7 +26,7 @@ UNITTEST_SUITE_BEGIN(filepath)
 
         UNITTEST_TEST(constructor1)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
             filepath_t p1(paths->m_devices->get_default_device());
 
@@ -37,7 +37,7 @@ UNITTEST_SUITE_BEGIN(filepath)
 
         UNITTEST_TEST(constructor2)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
             // const char* str = "TEST:\\textfiles\\docs\\readme.txt";
             // filepath_t  p;

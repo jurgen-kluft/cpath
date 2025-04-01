@@ -34,7 +34,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(constructor1)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
             dirpath_t dirpath(paths->m_devices->get_default_device());
             CHECK_EQUAL(true, dirpath.isEmpty());
@@ -44,7 +44,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(register_device)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
             npath::device_t* device = paths->register_device(make_crunes("c:"));
 
@@ -53,7 +53,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(constructor2)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
 #ifdef TARGET_PC
             crunes_t fullpath = make_crunes("c:\\the\\name\\is\\johhnywalker\\");
@@ -69,7 +69,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
 
         UNITTEST_TEST(to_string)
         {
-            npath::paths_t* paths = npath::g_construct_paths(Allocator, 1024 * 1024 * 1024);
+            npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
             // const char* asciidirstr = "c:\\the\\name\\is\\johhnywalker\\";
 
