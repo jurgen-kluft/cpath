@@ -3,42 +3,52 @@ package cpath
 import (
 	cbase "github.com/jurgen-kluft/cbase/package"
 	"github.com/jurgen-kluft/ccode/denv"
-	ccore "github.com/jurgen-kluft/ccore/package"
 	ctime "github.com/jurgen-kluft/ctime/package"
 	cunittest "github.com/jurgen-kluft/cunittest/package"
 	cvmem "github.com/jurgen-kluft/cvmem/package"
 )
 
-// GetPackage returns the package object of 'cpath'
+const (
+	repo_path = "github.com\\jurgen-kluft"
+	repo_name = "cpath"
+)
+
 func GetPackage() *denv.Package {
-	// Dependencies
+	name := repo_name
+
+	// dependencies
 	cunittestpkg := cunittest.GetPackage()
-	ccorepkg := ccore.GetPackage()
 	cbasepkg := cbase.GetPackage()
-	cvmempkg := cvmem.GetPackage()
 	ctimepkg := ctime.GetPackage()
+	cvmempkg := cvmem.GetPackage()
 
-	// The main (cpath) package
-	mainpkg := denv.NewPackage("cpath")
+	// main package
+	mainpkg := denv.NewPackage(repo_path, repo_name)
 	mainpkg.AddPackage(cunittestpkg)
-	mainpkg.AddPackage(ccorepkg)
 	mainpkg.AddPackage(cbasepkg)
-	mainpkg.AddPackage(cvmempkg)
 	mainpkg.AddPackage(ctimepkg)
+	mainpkg.AddPackage(cvmempkg)
 
-	// 'cpath' library
-	mainlib := denv.SetupCppLibProject("cpath", "github.com\\jurgen-kluft\\cpath")
-	mainlib.AddDependencies(ccorepkg.GetMainLib()...)
+	// main library
+	mainlib := denv.SetupCppLibProject(mainpkg, name)
 	mainlib.AddDependencies(cbasepkg.GetMainLib()...)
-	mainlib.AddDependencies(cvmempkg.GetMainLib()...)
 	mainlib.AddDependencies(ctimepkg.GetMainLib()...)
+	mainlib.AddDependencies(cvmempkg.GetMainLib()...)
 
-	// 'cpath' unittest project
-	maintest := denv.SetupDefaultCppTestProject("cpath"+"_test", "github.com\\jurgen-kluft\\cpath")
+	// test library
+	testlib := denv.SetupCppTestLibProject(mainpkg, name)
+	testlib.AddDependencies(cbasepkg.GetTestLib()...)
+	testlib.AddDependencies(ctimepkg.GetTestLib()...)
+	testlib.AddDependencies(cvmempkg.GetTestLib()...)
+	testlib.AddDependencies(cunittestpkg.GetTestLib()...)
+
+	// unittest project
+	maintest := denv.SetupCppTestProject(mainpkg, name)
 	maintest.AddDependencies(cunittestpkg.GetMainLib()...)
-	maintest.Dependencies = append(maintest.Dependencies, mainlib)
+	maintest.AddDependency(testlib)
 
 	mainpkg.AddMainLib(mainlib)
+	mainpkg.AddTestLib(testlib)
 	mainpkg.AddUnittest(maintest)
 	return mainpkg
 }
