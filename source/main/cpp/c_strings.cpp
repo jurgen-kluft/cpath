@@ -150,7 +150,7 @@ namespace ncore
             const char* strA8 = strA->m_str;
             const char* strB8 = strB->m_str;
             const char* endA8 = strA8 + strA->m_len;
-            const char* endB8 = strB8 + strB->m_len;
+            // const char* endB8 = strB8 + strB->m_len;
             while (strA8 < endA8)
             {
                 char rA = *strA8++;

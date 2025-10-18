@@ -96,11 +96,11 @@ namespace ncore
                 } while (s_next_folder(folder, '/'));
 
                 // Here we are likely left with the filename and extension
-                crunes_t fullfilename = make_crunes(folder);
-                fullfilename.m_str    = fullfilename.m_end;
-                fullfilename.m_end    = fullfilename.m_eos;
-                crunes_t filename     = nrunes::findSelectUntil(fullfilename, '.');
-                crunes_t extension    = nrunes::selectAfterExclude(fullfilename, filename);
+                // crunes_t fullfilename = make_crunes(folder);
+                // fullfilename.m_str    = fullfilename.m_end;
+                // fullfilename.m_end    = fullfilename.m_eos;
+                // crunes_t filename     = nrunes::findSelectUntil(fullfilename, '.');
+                // crunes_t extension    = nrunes::selectAfterExclude(fullfilename, filename);
             }
         }
 
@@ -113,7 +113,7 @@ namespace ncore
             {
                 device_t* device             = m_owner->m_devices->m_arr_devices[device_index];
                 devices[i++]                 = device;
-                idevice_t const device_index = device->m_redirector;
+                device_index = device->m_redirector;
             } while (device_index != c_invalid_device && i < 32);
 
             device_t const* device = devices[--i];
@@ -314,7 +314,7 @@ namespace ncore
             ntree32::setup_tree(devices->m_device_tree, devices->m_device_nodes);
             devices->m_device_tree_root = c_invalid_node;
 
-            device_t* default_device = devices->m_arr_devices[0];
+            //device_t* default_device = devices->m_arr_devices[0];
 
             return devices;
         }

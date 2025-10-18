@@ -34,13 +34,11 @@ namespace ncore
         m_extension = extension;
     }
 
-    filepath_t::~filepath_t()
-    {
-    }
+    filepath_t::~filepath_t() {}
 
     void filepath_t::clear()
     {
-        npath::paths_t* root = m_dirpath.m_device->m_owner;
+        // npath::paths_t* root = m_dirpath.m_device->m_owner;
         m_filename  = 0;
         m_extension = 0;
     }
@@ -80,7 +78,7 @@ namespace ncore
     s8 filepath_t::compare(const filepath_t& right) const
     {
         npath::paths_t* root = m_dirpath.m_device->m_owner;
-        s8 const           fe   = root->compare_str(m_filename, right.m_filename);
+        s8 const        fe   = root->compare_str(m_filename, right.m_filename);
         if (fe != 0)
             return fe;
         s8 const ce = root->compare_str(m_extension, right.m_extension);

@@ -113,16 +113,16 @@ namespace ncore
 
     dirpath_t dirpath_t::root() const
     {
-        dirpath_t       dp(m_device);
-        npath::paths_t* root = m_device->m_owner;
-        dp.m_base            = m_base;
+        dirpath_t dp(m_device);
+        // npath::paths_t* root = m_device->m_owner;
+        dp.m_base = m_base;
         return dp;
     }
 
     dirpath_t dirpath_t::parent() const
     {
-        npath::paths_t* root = m_device->m_owner;
-        dirpath_t       dp(m_device);
+        // npath::paths_t* root = m_device->m_owner;
+        dirpath_t dp(m_device);
         dp.m_base = m_path;
         dp.m_path = m_path;
         return dp;
@@ -155,9 +155,9 @@ namespace ncore
 
     dirpath_t dirpath_t::down() const
     {
-        npath::paths_t* const root = m_device->m_owner;
-        npath::node_t const   base = m_device->get_first_child_dir(m_path);
-        npath::node_t const   path = m_base;
+        // npath::paths_t* const root = m_device->m_owner;
+        npath::node_t const base = m_device->get_first_child_dir(m_path);
+        npath::node_t const path = m_base;
         return dirpath_t(m_device, base, path);
     }
 

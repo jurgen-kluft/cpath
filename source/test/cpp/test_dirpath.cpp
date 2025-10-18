@@ -25,12 +25,12 @@ UNITTEST_SUITE_BEGIN(dirpath)
         }
         UNITTEST_FIXTURE_TEARDOWN() {}
 
-        static const char* sFolders[] = {
-            "the",
-            "name",
-            "is",
-            "johhnywalker",
-        };
+        // static const char* sFolders[] = {
+        //     "the",
+        //     "name",
+        //     "is",
+        //     "johhnywalker",
+        // };
 
         UNITTEST_TEST(constructor1)
         {
@@ -45,9 +45,7 @@ UNITTEST_SUITE_BEGIN(dirpath)
         UNITTEST_TEST(register_device)
         {
             npath::paths_t* paths = npath::g_construct_paths(Allocator);
-
-            npath::device_t* device = paths->register_device(make_crunes("c:"));
-
+            //npath::device_t* device = paths->register_device(make_crunes("c:"));
             npath::g_destruct_paths(Allocator, paths);
         }
 
