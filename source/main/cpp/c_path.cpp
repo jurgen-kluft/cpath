@@ -23,7 +23,7 @@ namespace ncore
             paths->m_allocator = allocator;
 
             paths->m_strings        = g_construct_strings(allocator);
-            string_t default_string = paths->m_strings->insert(make_crunes("nil"));
+            string_t default_string = paths->m_strings->insert(ascii::make_crunes("nil"));
             ASSERT(default_string == c_empty_string);
 
             paths->m_devices = g_construct_devices(allocator, paths, paths->m_strings);

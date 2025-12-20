@@ -54,9 +54,9 @@ UNITTEST_SUITE_BEGIN(dirpath)
             npath::paths_t* paths = npath::g_construct_paths(Allocator);
 
 #ifdef TARGET_PC
-            crunes_t fullpath = make_crunes("c:\\the\\name\\is\\johhnywalker\\");
+            crunes_t fullpath = ascii::make_crunes("c:\\the\\name\\is\\johhnywalker\\");
 #elif defined(TARGET_MAC)
-            crunes_t fullpath = make_crunes("/volume/the/name/is/johhnywalker/");
+            crunes_t fullpath = ascii::make_crunes("/volume/the/name/is/johhnywalker/");
 #endif
 
             dirpath_t dirpath = paths->register_fulldirpath(fullpath);

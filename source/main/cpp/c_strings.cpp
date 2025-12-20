@@ -96,7 +96,7 @@ namespace ncore
 
             str_t* const str = (str_t*)m_data->m_str_buffer.ptr_of(s_find_slot(m_data), sizeof(str_t));
             str->m_str       = dst;
-            str->m_hash      = nhash::strhash((const char*)str8, (const char*)end8);
+            str->m_hash      = nhash::strhash32((const char*)str8, (const char*)end8);
             str->m_len       = (end8 - str8);
             u32 const istr   = m_data->m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
@@ -119,7 +119,7 @@ namespace ncore
 
             str_t* const str = (str_t*)m_data->m_str_buffer.ptr_of(s_find_slot(m_data), sizeof(str_t));
             str->m_str       = dst;
-            str->m_hash      = nhash::strhash((const char*)str8, (const char*)end8);
+            str->m_hash      = nhash::strhash32((const char*)str8, (const char*)end8);
             str->m_len       = (end8 - str8);
             u32 const istr   = m_data->m_str_buffer.idx_of((u8 const*)str, sizeof(str_t));
 
@@ -174,7 +174,7 @@ namespace ncore
         void strings_t::view_string(string_t _str, crunes_t& out_str) const
         {
             str_t* str = index_to_object(_str);
-            out_str    = make_crunes(str->m_str, 0, str->m_len, str->m_len);
+            out_str    = utf8::make_crunes((utf8::pcrune)str->m_str, 0, str->m_len, str->m_len);
         }
 
         s8 strings_t::compare(string_t left, string_t right) const
