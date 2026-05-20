@@ -15,20 +15,13 @@ target/
 !*.h
 !*.inl
 
-!*.pl
+!*.md
 
 !*.go
 
 !*.cs
 !*.csproj
 !*.resx
-
-!*.hlsl
-!*.fragment
-
-!*.mold
-!*.sc
-!*.diagram
 
 !*.ini
 !*.bat
